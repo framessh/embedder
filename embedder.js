@@ -24,7 +24,7 @@ class FramesEmbedder {
           <svg aria-hidden="true" focusable="false" role="img" class="ml-1 text-faint" viewBox="0 0 16 16" width="12" height="12" fill="currentColor" style="display: inline-block; user-select: none; vertical-align: text-bottom; overflow: visible;"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-3.5a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14h-8.5A1.75 1.75 0 0 1 2 12.25v-8.5C2 2.784 2.784 2 3.75 2Zm6.854-1h4.146a.25.25 0 0 1 .25.25v4.146a.25.25 0 0 1-.427.177L13.03 4.03 9.28 7.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.75-3.75-1.543-1.543A.25.25 0 0 1 10.604 1Z"></path></svg>
           `,
     redirect: `
-              <svg aria-hidden="true" focusable="false" role="img" class="ml-1 text-faint" viewBox="0 0 16 16" width="12" height="12" fill="currentColor" style="display: inline-block; user-select: none; vertical-align: text-bottom; overflow: visible;"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-3.5a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14h-8.5A1.75 1.75 0 0 1 2 12.25v-8.5C2 2.784 2.784 2 3.75 2Zm6.854-1h4.146a.25.25 0 0 1 .25.25v4.146a.25.25 0 0 1-.427.177L13.03 4.03 9.28 7.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.75-3.75-1.543-1.543A.25.25 0 0 1 10.604 1Z"></path></svg>
+              <svg aria-hidden="true" focusable="false"w role="img" class="ml-1 text-faint" viewBox="0 0 16 16" width="12" height="12" fill="currentColor" style="display: inline-block; user-select: none; vertical-align: text-bottom; overflow: visible;"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-3.5a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14h-8.5A1.75 1.75 0 0 1 2 12.25v-8.5C2 2.784 2.784 2 3.75 2Zm6.854-1h4.146a.25.25 0 0 1 .25.25v4.146a.25.25 0 0 1-.427.177L13.03 4.03 9.28 7.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.75-3.75-1.543-1.543A.25.25 0 0 1 10.604 1Z"></path></svg>
               `,
   };
   events = {
@@ -32,6 +32,8 @@ class FramesEmbedder {
     RENDERED: "Frame rendered",
     FAILED_RENDER: "Frame failed render",
     CLICKED: "Frame button clicked",
+    TX: "Frame transaction",
+    MINT: "Frame mint",
   };
 
   constructor() {
@@ -46,6 +48,8 @@ class FramesEmbedder {
         theme: elements[i].dataset["frameTheme"] ?? "dark",
         url: elements[i].dataset["frameUrl"] ?? null,
         fid: elements[i].dataset["frameFid"] ?? this.defaultFid,
+        transactionsEnabled:
+          elements[i].dataset["frameTransactionsEnabled"] ?? false,
       };
       this.frameEmbedData[frameEmbedId] = frameData;
       this.frameEmbedElements[frameEmbedId] = elements[i];
@@ -135,12 +139,15 @@ class FramesEmbedder {
         headItem.nodeName === "META" &&
         headItem.getAttribute("property") !== null &&
         (headItem.getAttribute("property").indexOf("fc:frame:button") > -1 ||
-          headItem.getAttribute("property").indexOf("fc:frame:input") > -1)
+          headItem.getAttribute("property").indexOf("fc:frame:input") > -1 ||
+          headItem.getAttribute("property").indexOf("of:button") > -1 ||
+          headItem.getAttribute("property").indexOf("of:input") > -1)
       ) {
         const nodeContent = headItem.getAttribute("content");
         const nodeProperty = headItem.getAttribute("property");
         switch (nodeProperty) {
           case "fc:frame:input:text":
+          case "of:input:text":
             {
               if (inputs === undefined) {
                 inputs = {};
@@ -155,8 +162,13 @@ class FramesEmbedder {
             }
             break;
           case "fc:frame:button:1:target":
+          case "fc:frame:button:1:post_url":
           case "fc:frame:button:1:action":
           case "fc:frame:button:1":
+          case "of:button:1:target":
+          case "of:button:1:post_url":
+          case "of:button:1:action":
+          case "of:button:1":
             {
               if (inputs === undefined) {
                 inputs = {};
@@ -169,9 +181,17 @@ class FramesEmbedder {
                   postUrl: nodeContent,
                 };
               }
-              if (nodeProperty === "fc:frame:button:1:action") {
+              if (
+                nodeProperty === "fc:frame:button:1:action" ||
+                nodeProperty === "of:button:1:action"
+              ) {
                 inputs["button1"].interaction = nodeContent;
-              } else if (nodeProperty === "fc:frame:button:1:target") {
+              } else if (
+                nodeProperty === "fc:frame:button:1:target" ||
+                nodeProperty === "fc:frame:button:1:post_url" ||
+                nodeProperty === "of:button:1:target" ||
+                nodeProperty === "of:button:1:post_url"
+              ) {
                 inputs["button1"].postUrl = nodeContent;
               } else {
                 inputs["button1"].title = nodeContent;
@@ -179,8 +199,13 @@ class FramesEmbedder {
             }
             break;
           case "fc:frame:button:2:target":
+          case "fc:frame:button:2:post_url":
           case "fc:frame:button:2:action":
           case "fc:frame:button:2":
+          case "of:button:2:target":
+          case "of:button:2:post_url":
+          case "of:button:2:action":
+          case "of:button:2":
             {
               if (inputs === undefined) {
                 inputs = {};
@@ -193,9 +218,17 @@ class FramesEmbedder {
                   postUrl: nodeContent,
                 };
               }
-              if (nodeProperty === "fc:frame:button:2:action") {
+              if (
+                nodeProperty === "fc:frame:button:2:action" ||
+                nodeProperty === "of:button:2:action"
+              ) {
                 inputs["button2"].interaction = nodeContent;
-              } else if (nodeProperty === "fc:frame:button:2:target") {
+              } else if (
+                nodeProperty === "fc:frame:button:2:target" ||
+                nodeProperty === "fc:frame:button:2:post_url" ||
+                nodeProperty === "of:button:2:target" ||
+                nodeProperty === "of:button:2:post_url"
+              ) {
                 inputs["button2"].postUrl = nodeContent;
               } else {
                 inputs["button2"].title = nodeContent;
@@ -203,8 +236,13 @@ class FramesEmbedder {
             }
             break;
           case "fc:frame:button:3:target":
+          case "fc:frame:button:3:post_url":
           case "fc:frame:button:3:action":
           case "fc:frame:button:3":
+          case "of:button:3:target":
+          case "of:button:3:post_url":
+          case "of:button:3:action":
+          case "of:button:3":
             {
               if (inputs === undefined) {
                 inputs = {};
@@ -217,9 +255,17 @@ class FramesEmbedder {
                   postUrl: nodeContent,
                 };
               }
-              if (nodeProperty === "fc:frame:button:3:action") {
+              if (
+                nodeProperty === "fc:frame:button:3:action" ||
+                nodeProperty === "of:button:3:action"
+              ) {
                 inputs["button3"].interaction = nodeContent;
-              } else if (nodeProperty === "fc:frame:button:3:target") {
+              } else if (
+                nodeProperty === "fc:frame:button:3:target" ||
+                nodeProperty === "fc:frame:button:3:post_url" ||
+                nodeProperty === "of:button:3:target" ||
+                nodeProperty === "of:button:3:post_url"
+              ) {
                 inputs["button3"].postUrl = nodeContent;
               } else {
                 inputs["button3"].title = nodeContent;
@@ -227,8 +273,13 @@ class FramesEmbedder {
             }
             break;
           case "fc:frame:button:4:target":
+          case "fc:frame:button:4:post_url":
           case "fc:frame:button:4:action":
           case "fc:frame:button:4":
+          case "of:button:4:target":
+          case "of:button:4:post_url":
+          case "of:button:4:action":
+          case "of:button:4":
             {
               if (inputs === undefined) {
                 inputs = {};
@@ -241,9 +292,17 @@ class FramesEmbedder {
                   postUrl: nodeContent,
                 };
               }
-              if (nodeProperty === "fc:frame:button:4:action") {
+              if (
+                nodeProperty === "fc:frame:button:4:action" ||
+                nodeProperty === "of:button:4:action"
+              ) {
                 inputs["button4"].interaction = nodeContent;
-              } else if (nodeProperty === "fc:frame:button:4:target") {
+              } else if (
+                nodeProperty === "fc:frame:button:4:target" ||
+                nodeProperty === "fc:frame:button:4:post_url" ||
+                nodeProperty === "of:button:4:target" ||
+                nodeProperty === "of:button:4:post_url"
+              ) {
                 inputs["button4"].postUrl = nodeContent;
               } else {
                 inputs["button4"].title = nodeContent;
@@ -306,7 +365,13 @@ class FramesEmbedder {
     this.frameButtonClicked[frameParentElementId] = false;
   }
 
-  clickButtonInput(frameParentElementId, inputs, frameState, buttonIndex) {
+  performAction(
+    frameParentElementId,
+    inputs,
+    frameState,
+    buttonIndex,
+    transactionData = null
+  ) {
     try {
       if (
         frameParentElementId in this.frameButtonClicked === true &&
@@ -316,8 +381,17 @@ class FramesEmbedder {
       }
       const frameElement = this.frameEmbedElements[frameParentElementId];
       const frameTheme = this.frameEmbedData[frameParentElementId].theme;
+      const frameTransactionsEnabled =
+        this.frameEmbedData[frameParentElementId].transactionsEnabled;
       const inputsDecoded = JSON.parse(decodeURIComponent(inputs));
       const buttonClicked = inputsDecoded["button" + buttonIndex];
+      this.emitFrameEvent(this.events.CLICKED, {
+        frameId: frameParentElementId,
+        url: buttonClicked.postUrl,
+        button: buttonClicked,
+        inputs,
+        state: frameState,
+      });
       if (buttonClicked.interaction === "link") {
         this.setNotificationPopup(
           frameParentElementId,
@@ -332,6 +406,32 @@ class FramesEmbedder {
         this.toggleFramePopup(frameParentElementId, "notification");
         return;
       }
+      if (
+        (buttonClicked.interaction === "mint" ||
+          buttonClicked.interaction === "tx") &&
+        frameTransactionsEnabled === false
+      ) {
+        this.setNotificationPopup(
+          frameParentElementId,
+          "Unsupported Action",
+          "Tranasctions are unsupported.",
+          "A transaction has been requested by the frame. This action is currently not supported."
+        );
+        this.toggleFramePopup(frameParentElementId, "notification");
+        this.resetButtonClickedState(frameParentElementId);
+        return;
+      }
+      if (buttonClicked.interaction === "mint") {
+        this.emitFrameEvent(this.events.MINT, {
+          frameId: frameParentElementId,
+          url: buttonClicked.postUrl,
+          mint: buttonClicked.postUrl,
+          button: buttonClicked,
+          inputs,
+          state: frameState,
+        });
+        return;
+      }
       const inputText =
         this.frameEmbedInputTextValues[frameParentElementId] ?? undefined;
       frameElement.children[0].children[0].style.filter = "blur(10px)";
@@ -340,31 +440,41 @@ class FramesEmbedder {
         frameId: frameParentElementId,
         url: buttonClicked.postUrl,
       });
+      if (
+        transactionData !== null &&
+        ("network" in transactionData === false ||
+          "transactionId" in transactionData === false ||
+          "address" in transactionData === false)
+      ) {
+        throw "Invalid transaction data provided.";
+      }
       this.resolveInputLink(
         buttonClicked.postUrl,
         this.frameEmbedData[frameParentElementId].fid,
         buttonIndex,
         inputText,
-        frameState
+        frameState,
+        transactionData === null ? undefined : transactionData.network,
+        transactionData === null ? undefined : transactionData.transactionId,
+        transactionData === null ? undefined : transactionData.address
       )
         .then((r) => {
           if (
-            (buttonClicked.interaction === "tx" ||
-              buttonClicked.interaction === "mint") &&
+            buttonClicked.interaction === "tx" &&
             this.checkIfTxResponse(r) === true
           ) {
             frameElement.children[0].children[0].style.filter = "unset";
-            this.setNotificationPopup(
-              frameParentElementId,
-              "Unsupported Action",
-              "Tranasctions are unsupported.",
-              "A transaction has been requested by the frame. This action is currently not supported."
-            );
-            this.toggleFramePopup(frameParentElementId, "notification");
-            this.resetButtonClickedState(frameParentElementId);
             this.emitFrameEvent(this.events.RENDERED, {
               frameId: frameParentElementId,
               url: buttonClicked.postUrl,
+            });
+            this.emitFrameEvent(this.events.TX, {
+              frameId: frameParentElementId,
+              url: buttonClicked.postUrl,
+              button: buttonClicked,
+              transaction: typeof r === "string" ? JSON.parse(r) : r,
+              inputs,
+              state: frameState,
             });
             return;
           }
@@ -524,7 +634,7 @@ class FramesEmbedder {
             ${
               frameInputs === undefined || "button1" in frameInputs === false
                 ? ""
-                : `<button onclick="window.frameEmbedder.clickButtonInput('${frameParentElement.getAttribute(
+                : `<button onclick="window.frameEmbedder.performAction('${frameParentElement.getAttribute(
                     "frame-embedder-id"
                   )}','${encodeURIComponent(
                     JSON.stringify(frameInputs)
@@ -551,7 +661,7 @@ class FramesEmbedder {
             ${
               frameInputs === undefined || "button2" in frameInputs === false
                 ? ""
-                : `<button onclick="window.frameEmbedder.clickButtonInput('${frameParentElement.getAttribute(
+                : `<button onclick="window.frameEmbedder.performAction('${frameParentElement.getAttribute(
                     "frame-embedder-id"
                   )}','${encodeURIComponent(
                     JSON.stringify(frameInputs)
@@ -578,7 +688,7 @@ class FramesEmbedder {
             ${
               frameInputs === undefined || "button3" in frameInputs === false
                 ? ""
-                : `<button onclick="window.frameEmbedder.clickButtonInput('${frameParentElement.getAttribute(
+                : `<button onclick="window.frameEmbedder.performAction('${frameParentElement.getAttribute(
                     "frame-embedder-id"
                   )}', '${encodeURIComponent(
                     JSON.stringify(frameInputs)
@@ -605,7 +715,7 @@ class FramesEmbedder {
             ${
               frameInputs === undefined || "button4" in frameInputs === false
                 ? ""
-                : `<button onclick="window.frameEmbedder.clickButtonInput('${frameParentElement.getAttribute(
+                : `<button onclick="window.frameEmbedder.performAction('${frameParentElement.getAttribute(
                     "frame-embedder-id"
                   )}','${encodeURIComponent(
                     JSON.stringify(frameInputs)

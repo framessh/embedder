@@ -27,6 +27,25 @@
       }
     </style>
     <link href="embedder.css" rel="stylesheet" />
+    <script type="text/javascript">
+      window.onmessage = (e) => {
+        if (
+          typeof e.data !== "object" ||
+          "content" in e.data === false ||
+          "type" in e.data === false ||
+          this.live === true
+        ) {
+          return;
+        }
+        if (e.data.type === "Frame transaction") {
+          alert("Transaction data received!");
+        }
+        if (e.data.type === "Frame mint") {
+          alert("Mint data received!");
+        }
+        console.log(e.data);
+      };
+    </script>
   </head>
   <body>
     <div id="frames-container">
@@ -39,6 +58,7 @@
       <div
         data-frame-fid="628548"
         data-frame-theme="dark"
+        data-frame-transactions-enabled="true"
         data-frame-url="https://ny-1.frames.sh/v/38871"
         class="frame-embed frames"
       ></div>
