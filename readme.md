@@ -95,6 +95,7 @@ Transactions type actions such as mint & tx are supressed by default. When a use
 As per the frame spec, the client/host is expected to send an action to the frame when a transaction is sent to the chain. With frame embedder, when a "Frame Transaction" event is emitted, the host is expected to handle the transaction. Once the transaction is sent to the chain the host can invoke a **performAction** call to window.frameEmbedder, for example:
 
 ```
+  // See the demo on how to capture the frame events
   const frameEventCaptured = frameEvent;
 
   // Get the frame id
