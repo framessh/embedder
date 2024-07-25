@@ -172,16 +172,10 @@ To run your own instance of the proxy server, deploy the proxy inside the `proxy
 - Node 18.x
 - SSL Certificates
 
-**Install the node package:**
-
-```
-npm install
-```
+Populate the SSL files required for the server in the `/ssl` folder. And run the installation script (install.sh).
 
 **Install the service:**
 
 ```
 bash install.sh <Working Directory>
 ```
-
-Populate the SSL files required for the server in the `/ssl` folder.
