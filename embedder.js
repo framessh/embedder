@@ -66,6 +66,7 @@ class FramesEmbedder {
       elements[i].setAttribute("frame-embedder-id", frameEmbedId);
       elements[i].innerHTML = this.renderFrame(
         false,
+        frameEmbedId,
         elements[i],
         this.createFrameBlur(frameData.theme),
         null,
@@ -83,6 +84,7 @@ class FramesEmbedder {
           const { content, image } = r;
           elements[i].innerHTML = this.renderFrame(
             true,
+            frameEmbedId,
             elements[i],
             content,
             image,
@@ -94,7 +96,7 @@ class FramesEmbedder {
           });
         })
         .catch((e) => {
-          this.showError(elements[i], frameData.theme);
+          this.showError(frameEmbedId, frameData.theme);
           this.emitFrameEvent(this.events.FAILED_RENDER, {
             frameId: frameEmbedId,
             url: frameData.url,
@@ -487,6 +489,7 @@ class FramesEmbedder {
           }
           frameElement.innerHTML = this.renderFrame(
             true,
+            frameParentElementId,
             frameElement,
             content,
             image,
@@ -500,7 +503,7 @@ class FramesEmbedder {
           this.resetButtonClickedState(frameParentElementId);
         })
         .catch((e) => {
-          this.showError(frameElement, frameTheme);
+          this.showError(frameParentElementId, frameTheme);
           this.resetButtonClickedState(frameParentElementId);
           this.emitFrameEvent(this.events.FAILED_RENDER, {
             frameId: frameParentElementId,
@@ -581,14 +584,15 @@ class FramesEmbedder {
     }
   }
 
-  showError(frameElement, frameTheme = "dark") {
-    frameElement.innerHTML = this.renderFrame(
-      false,
-      frameElement,
-      this.createFrameError(frameTheme),
-      null,
-      frameTheme
-    );
+  showError(frameParentElementId, frameTheme = "dark") {
+    const frameCanvas = document.querySelectorAll(
+      `[data-frame-embedder-canvas='${frameParentElementId}']`
+    )[0];
+    const errorContent = new Blob([this.createFrameError(frameTheme)], {
+      type: "text/html",
+    });
+    frameCanvas.style.filter = "unset";
+    frameCanvas.src = URL.createObjectURL(errorContent);
   }
 
   getAllFrameEmbedElements() {
@@ -597,6 +601,7 @@ class FramesEmbedder {
 
   renderFrame(
     renderImageNotHTML,
+    frameParentElementId,
     frameParentElement,
     frameContent,
     frameProxyImage = null,
@@ -628,7 +633,7 @@ class FramesEmbedder {
     );
     return `
       <div class="frame-embedder-container ${frameTheme}">
-        <iframe class="frame-embedder-frame ${frameTheme}" width="${
+        <iframe data-frame-embedder-canvas="${frameParentElementId}" class="frame-embedder-frame ${frameTheme}" width="${
       frameSize.width
     }" height="${frameSize.height}" style="width: ${
       frameSize.width
