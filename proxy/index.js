@@ -89,7 +89,7 @@ const isValidPayload = (payload) => {
   );
 };
 
-const isTxResponse = (reponse) => {
+const isTxResponse = (response) => {
   try {
     const data = typeof response === "string" ? JSON.parse(response) : response;
     return (
@@ -237,9 +237,7 @@ const processFrame = (targetUrl, method, payload = null) => {
       })
       .then((r) => {
         if (typeof r === "object" || testJSON(r) === true) {
-          if (
-            isTxResponse(typeof r === "string" ? JSON.parse(r) : r) === false
-          ) {
+          if (isTxResponse(r) === false) {
             throw "Not a transaciton response.";
           }
           resolved({
