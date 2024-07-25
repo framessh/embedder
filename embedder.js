@@ -66,6 +66,7 @@ class FramesEmbedder {
       elements[i].setAttribute("frame-embedder-id", frameEmbedId);
       elements[i].innerHTML = this.renderFrame(
         false,
+        frameEmbedId,
         elements[i],
         this.createFrameBlur(frameData.theme),
         null,
@@ -83,6 +84,7 @@ class FramesEmbedder {
           const { content, image } = r;
           elements[i].innerHTML = this.renderFrame(
             true,
+            frameEmbedId,
             elements[i],
             content,
             image,
@@ -94,7 +96,7 @@ class FramesEmbedder {
           });
         })
         .catch((e) => {
-          this.showError(elements[i], frameData.theme);
+          this.showError(frameEmbedId, frameData.theme);
           this.emitFrameEvent(this.events.FAILED_RENDER, {
             frameId: frameEmbedId,
             url: frameData.url,
@@ -115,7 +117,7 @@ class FramesEmbedder {
       })
         .then(async (r) => {
           if (r.status !== 200) {
-            throw r.text();
+            throw await r.text();
           }
           return r.json();
         })
@@ -141,14 +143,24 @@ class FramesEmbedder {
       if (
         headItem !== null &&
         headItem.nodeName === "META" &&
-        headItem.getAttribute("property") !== null &&
-        (headItem.getAttribute("property").indexOf("fc:frame:button") > -1 ||
-          headItem.getAttribute("property").indexOf("fc:frame:input") > -1 ||
-          headItem.getAttribute("property").indexOf("of:button") > -1 ||
-          headItem.getAttribute("property").indexOf("of:input") > -1)
+        (headItem.getAttribute("property") ?? headItem.getAttribute("name")) !==
+          null &&
+        ((
+          headItem.getAttribute("property") ?? headItem.getAttribute("name")
+        ).indexOf("fc:frame:button") > -1 ||
+          (
+            headItem.getAttribute("property") ?? headItem.getAttribute("name")
+          ).indexOf("fc:frame:input") > -1 ||
+          (
+            headItem.getAttribute("property") ?? headItem.getAttribute("name")
+          ).indexOf("of:button") > -1 ||
+          (
+            headItem.getAttribute("property") ?? headItem.getAttribute("name")
+          ).indexOf("of:input") > -1)
       ) {
         const nodeContent = headItem.getAttribute("content");
-        const nodeProperty = headItem.getAttribute("property");
+        const nodeProperty =
+          headItem.getAttribute("property") ?? headItem.getAttribute("name");
         switch (nodeProperty) {
           case "fc:frame:input:text":
           case "of:input:text":
@@ -325,8 +337,12 @@ class FramesEmbedder {
       if (
         headItem !== null &&
         headItem.nodeName === "META" &&
-        headItem.getAttribute("property") !== null &&
-        headItem.getAttribute("property") === "fc:frame:image:aspect_ratio"
+        (headItem.getAttribute("property") !== null ||
+          headItem.getAttribute("name") !== null) &&
+        (headItem.getAttribute("property") === "fc:frame:image:aspect_ratio" ||
+          headItem.getAttribute("name") === "fc:frame:image:aspect_ratio" ||
+          headItem.getAttribute("property") === "of:image:aspect_ratio" ||
+          headItem.getAttribute("name") === "of:image:aspect_ratio")
       ) {
         return headItem.getAttribute("content");
       }
@@ -339,9 +355,12 @@ class FramesEmbedder {
       if (
         headItem !== null &&
         headItem.nodeName === "META" &&
-        headItem.getAttribute("property") !== null &&
+        (headItem.getAttribute("property") !== null ||
+          headItem.getAttribute("name") !== null) &&
         (headItem.getAttribute("property") === "fc:frame:state" ||
-          headItem.getAttribute("property") === "of:state")
+          headItem.getAttribute("name") === "fc:frame:state" ||
+          headItem.getAttribute("property") === "of:state" ||
+          headItem.getAttribute("name") === "of:state")
       ) {
         return headItem.getAttribute("content");
       }
@@ -354,9 +373,12 @@ class FramesEmbedder {
       if (
         headItem !== null &&
         headItem.nodeName === "META" &&
-        headItem.getAttribute("property") !== null &&
+        (headItem.getAttribute("property") !== null ||
+          headItem.getAttribute("name") !== null) &&
         (headItem.getAttribute("property") === "fc:frame:image" ||
-          headItem.getAttribute("property") === "of:image")
+          headItem.getAttribute("name") === "fc:frame:image" ||
+          headItem.getAttribute("property") === "of:image" ||
+          headItem.getAttribute("name") === "of:image")
       ) {
         return headItem.getAttribute("content");
       }
@@ -487,6 +509,7 @@ class FramesEmbedder {
           }
           frameElement.innerHTML = this.renderFrame(
             true,
+            frameParentElementId,
             frameElement,
             content,
             image,
@@ -500,7 +523,7 @@ class FramesEmbedder {
           this.resetButtonClickedState(frameParentElementId);
         })
         .catch((e) => {
-          this.showError(frameElement, frameTheme);
+          this.showError(frameParentElementId, frameTheme);
           this.resetButtonClickedState(frameParentElementId);
           this.emitFrameEvent(this.events.FAILED_RENDER, {
             frameId: frameParentElementId,
@@ -553,7 +576,7 @@ class FramesEmbedder {
       })
         .then(async (r) => {
           if (r.status !== 200) {
-            throw r.text();
+            throw await r.text();
           }
           return r.json();
         })
@@ -581,14 +604,15 @@ class FramesEmbedder {
     }
   }
 
-  showError(frameElement, frameTheme = "dark") {
-    frameElement.innerHTML = this.renderFrame(
-      false,
-      frameElement,
-      this.createFrameError(frameTheme),
-      null,
-      frameTheme
-    );
+  showError(frameParentElementId, frameTheme = "dark") {
+    const frameCanvas = document.querySelectorAll(
+      `[data-frame-embedder-canvas='${frameParentElementId}']`
+    )[0];
+    const errorContent = new Blob([this.createFrameError(frameTheme)], {
+      type: "text/html",
+    });
+    frameCanvas.style.filter = "unset";
+    frameCanvas.src = URL.createObjectURL(errorContent);
   }
 
   getAllFrameEmbedElements() {
@@ -597,6 +621,7 @@ class FramesEmbedder {
 
   renderFrame(
     renderImageNotHTML,
+    frameParentElementId,
     frameParentElement,
     frameContent,
     frameProxyImage = null,
@@ -628,7 +653,7 @@ class FramesEmbedder {
     );
     return `
       <div class="frame-embedder-container ${frameTheme}">
-        <iframe class="frame-embedder-frame ${frameTheme}" width="${
+        <iframe data-frame-embedder-canvas="${frameParentElementId}" class="frame-embedder-frame ${frameTheme}" width="${
       frameSize.width
     }" height="${frameSize.height}" style="width: ${
       frameSize.width

@@ -75,7 +75,7 @@ const removeStaleImages = () => {
 };
 
 const isValidUrl = (url) => {
-  return /^(http(s):\/\/.)[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/g.test(
+  return /^(http(s):\/\/.)[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:;%_\+.~#?&//=]*)$/g.test(
     url
   );
 };
@@ -89,7 +89,7 @@ const isValidPayload = (payload) => {
   );
 };
 
-const isTxResponse = (reponse) => {
+const isTxResponse = (response) => {
   try {
     const data = typeof response === "string" ? JSON.parse(response) : response;
     return (
@@ -114,16 +114,16 @@ const probeImageSize = (imageUrl) => {
       method: "HEAD",
       signal: AbortSignal.timeout(5000),
     })
-      .then((r) => {
+      .then(async (r) => {
         if (r.status !== 200) {
-          throw r.text();
+          throw await r.text();
         }
         const headers = r.headers;
         const contentType = headers.get("content-type");
         const contentLength = headers.get("content-length");
         if (validImagesMimeTypes.includes(contentType) === false) {
           console.log("Invalid image type.");
-          throw r.text();
+          throw await r.text();
         }
         resolved(contentLength);
         return r.text();
@@ -142,9 +142,9 @@ const getImage = (imageUrl) => {
       method: "GET",
       signal: AbortSignal.timeout(5000),
     })
-      .then((r) => {
+      .then(async (r) => {
         if (r.status !== 200) {
-          throw r.text();
+          throw await r.text();
         }
         headers = r.headers;
         return r.arrayBuffer();
@@ -175,8 +175,11 @@ const saveImage = (imageArrayBuffer, imageMimeType) => {
 
 const parseFrameContent = (frameContent) => {
   try {
-    const doc = parseFromString(frameContent, "text/html");
-    const head = doc.getElementsByTagName("HEAD")[0];
+    const doc = parseFromString(
+      frameContent.replace(/^<\!DOCTYPE[^<]+>/g, ""),
+      "text/html"
+    );
+    const head = doc.getElementsByTagName("head")[0];
     return head.childNodes;
   } catch (e) {
     return Error("Invalid frame content.");
@@ -190,13 +193,16 @@ const getFrameImage = (parsedFrameContent) => {
       if (
         headItem !== null &&
         headItem.nodeName === "meta" &&
-        headItem.getAttribute("property") !== null &&
+        (headItem.getAttribute("property") !== null ||
+          headItem.getAttribute("name") !== null) &&
         (headItem.getAttribute("property") === "fc:frame:image" ||
-          headItem.getAttribute("property") === "of:image")
+          headItem.getAttribute("name") === "fc:frame:image" ||
+          headItem.getAttribute("property") === "of:image" ||
+          headItem.getAttribute("name") === "of:image")
       ) {
         const imageUrl = headItem.getAttribute("content");
         if (isValidUrl(imageUrl) === false) {
-          throw null;
+          throw Error("Invalid image URL");
         }
         return imageUrl;
       }
@@ -231,7 +237,7 @@ const processFrame = (targetUrl, method, payload = null) => {
     })
       .then(async (r) => {
         if (r.status !== 200) {
-          throw r.text();
+          throw await r.text();
         }
         return r.text();
       })
@@ -252,7 +258,7 @@ const processFrame = (targetUrl, method, payload = null) => {
         frameContentRaw = r;
         frameImage = getFrameImage(parsedContent);
         if (frameImage instanceof Error) {
-          throw "Invalid content";
+          throw "Failed to get frame image";
         }
         return probeImageSize(frameImage);
       })
@@ -303,13 +309,17 @@ appServe.get("/:frame", (req, res) => {
       return;
     }
     console.log("Frame proxy request received (GET):", frameUrl);
-    processFrame(frameUrl, "GET").then((result) => {
-      if (result instanceof Error) {
-        res.status(503).end(result);
-        return;
-      }
-      res.status(200).send(result);
-    });
+    processFrame(frameUrl, "GET")
+      .then((result) => {
+        if (result instanceof Error) {
+          res.status(503).end(result);
+          return;
+        }
+        res.status(200).send(result);
+      })
+      .catch((e) => {
+        res.status(503).end("Unknown error has occured.");
+      });
   } catch (e) {
     console.log(e);
     res.status(503).end("Unknown error");
@@ -325,13 +335,17 @@ appServe.post("/", (req, res) => {
       return;
     }
     console.log("Frame proxy request received (POST):", frameUrl);
-    processFrame(frameUrl, "POST", framePayload).then((result) => {
-      if (result instanceof Error) {
-        res.status(503).end(result);
-        return;
-      }
-      res.status(200).send(result);
-    });
+    processFrame(frameUrl, "POST", framePayload)
+      .then((result) => {
+        if (result instanceof Error) {
+          res.status(503).end(result);
+          return;
+        }
+        res.status(200).send(result);
+      })
+      .catch((e) => {
+        res.status(503).end("Unknown error has occured.");
+      });
   } catch (e) {
     res.status(503).end("Unknown error");
   }
