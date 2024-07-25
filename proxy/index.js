@@ -75,7 +75,7 @@ const removeStaleImages = () => {
 };
 
 const isValidUrl = (url) => {
-  return /^(http(s):\/\/.)[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/g.test(
+  return /^(http(s):\/\/.)[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:;%_\+.~#?&//=]*)$/g.test(
     url
   );
 };
@@ -175,8 +175,11 @@ const saveImage = (imageArrayBuffer, imageMimeType) => {
 
 const parseFrameContent = (frameContent) => {
   try {
-    const doc = parseFromString(frameContent, "text/html");
-    const head = doc.getElementsByTagName("HEAD")[0];
+    const doc = parseFromString(
+      frameContent.replace(/^<\!DOCTYPE[^<]+>/g, ""),
+      "text/html"
+    );
+    const head = doc.getElementsByTagName("head")[0];
     return head.childNodes;
   } catch (e) {
     return Error("Invalid frame content.");
@@ -190,9 +193,12 @@ const getFrameImage = (parsedFrameContent) => {
       if (
         headItem !== null &&
         headItem.nodeName === "meta" &&
-        headItem.getAttribute("property") !== null &&
+        (headItem.getAttribute("property") !== null ||
+          headItem.getAttribute("name") !== null) &&
         (headItem.getAttribute("property") === "fc:frame:image" ||
-          headItem.getAttribute("property") === "of:image")
+          headItem.getAttribute("name") === "fc:frame:image" ||
+          headItem.getAttribute("property") === "of:image" ||
+          headItem.getAttribute("name") === "of:image")
       ) {
         const imageUrl = headItem.getAttribute("content");
         if (isValidUrl(imageUrl) === false) {
@@ -252,7 +258,7 @@ const processFrame = (targetUrl, method, payload = null) => {
         frameContentRaw = r;
         frameImage = getFrameImage(parsedContent);
         if (frameImage instanceof Error) {
-          throw "Invalid content";
+          throw "Failed to get frame image";
         }
         return probeImageSize(frameImage);
       })

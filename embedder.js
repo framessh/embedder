@@ -143,14 +143,24 @@ class FramesEmbedder {
       if (
         headItem !== null &&
         headItem.nodeName === "META" &&
-        headItem.getAttribute("property") !== null &&
-        (headItem.getAttribute("property").indexOf("fc:frame:button") > -1 ||
-          headItem.getAttribute("property").indexOf("fc:frame:input") > -1 ||
-          headItem.getAttribute("property").indexOf("of:button") > -1 ||
-          headItem.getAttribute("property").indexOf("of:input") > -1)
+        (headItem.getAttribute("property") ?? headItem.getAttribute("name")) !==
+          null &&
+        ((
+          headItem.getAttribute("property") ?? headItem.getAttribute("name")
+        ).indexOf("fc:frame:button") > -1 ||
+          (
+            headItem.getAttribute("property") ?? headItem.getAttribute("name")
+          ).indexOf("fc:frame:input") > -1 ||
+          (
+            headItem.getAttribute("property") ?? headItem.getAttribute("name")
+          ).indexOf("of:button") > -1 ||
+          (
+            headItem.getAttribute("property") ?? headItem.getAttribute("name")
+          ).indexOf("of:input") > -1)
       ) {
         const nodeContent = headItem.getAttribute("content");
-        const nodeProperty = headItem.getAttribute("property");
+        const nodeProperty =
+          headItem.getAttribute("property") ?? headItem.getAttribute("name");
         switch (nodeProperty) {
           case "fc:frame:input:text":
           case "of:input:text":
@@ -327,8 +337,12 @@ class FramesEmbedder {
       if (
         headItem !== null &&
         headItem.nodeName === "META" &&
-        headItem.getAttribute("property") !== null &&
-        headItem.getAttribute("property") === "fc:frame:image:aspect_ratio"
+        (headItem.getAttribute("property") !== null ||
+          headItem.getAttribute("name") !== null) &&
+        (headItem.getAttribute("property") === "fc:frame:image:aspect_ratio" ||
+          headItem.getAttribute("name") === "fc:frame:image:aspect_ratio" ||
+          headItem.getAttribute("property") === "of:image:aspect_ratio" ||
+          headItem.getAttribute("name") === "of:image:aspect_ratio")
       ) {
         return headItem.getAttribute("content");
       }
@@ -341,9 +355,12 @@ class FramesEmbedder {
       if (
         headItem !== null &&
         headItem.nodeName === "META" &&
-        headItem.getAttribute("property") !== null &&
+        (headItem.getAttribute("property") !== null ||
+          headItem.getAttribute("name") !== null) &&
         (headItem.getAttribute("property") === "fc:frame:state" ||
-          headItem.getAttribute("property") === "of:state")
+          headItem.getAttribute("name") === "fc:frame:state" ||
+          headItem.getAttribute("property") === "of:state" ||
+          headItem.getAttribute("name") === "of:state")
       ) {
         return headItem.getAttribute("content");
       }
@@ -356,9 +373,12 @@ class FramesEmbedder {
       if (
         headItem !== null &&
         headItem.nodeName === "META" &&
-        headItem.getAttribute("property") !== null &&
+        (headItem.getAttribute("property") !== null ||
+          headItem.getAttribute("name") !== null) &&
         (headItem.getAttribute("property") === "fc:frame:image" ||
-          headItem.getAttribute("property") === "of:image")
+          headItem.getAttribute("name") === "fc:frame:image" ||
+          headItem.getAttribute("property") === "of:image" ||
+          headItem.getAttribute("name") === "of:image")
       ) {
         return headItem.getAttribute("content");
       }
