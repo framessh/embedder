@@ -8,6 +8,7 @@ sudo apt install nodejs -y
 node -v
 
 cd $DIR_PATH
+npm install
 sed -e "s/WORKING_DIR/$1/g" "$DIR_PATH/proxy-sample.service" > "$DIR_PATH/proxy.service"
 cp -rf ./proxy.service /etc/systemd/system
 systemctl start pureflex.service 
