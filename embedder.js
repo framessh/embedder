@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 ************************************/
 class FramesEmbedder {
   defaultFid = 628548;
+  frameProxy = "https://proxy.frames.sh";
   frameEmbedInputTextValues = {};
   frameEmbedData = {};
   frameEmbedElements = {};
@@ -67,6 +68,7 @@ class FramesEmbedder {
         false,
         elements[i],
         this.createFrameBlur(frameData.theme),
+        null,
         frameData.theme
       );
       if (frameData.url === null) {
@@ -78,10 +80,12 @@ class FramesEmbedder {
       });
       this.loadFrame(frameData.url)
         .then((r) => {
+          const { content, image } = r;
           elements[i].innerHTML = this.renderFrame(
             true,
             elements[i],
-            r,
+            content,
+            image,
             frameData.theme
           );
           this.emitFrameEvent(this.events.RENDERED, {
@@ -102,7 +106,7 @@ class FramesEmbedder {
 
   loadFrame(frameUrl) {
     return new Promise((resolved, rejected) => {
-      fetch(frameUrl, {
+      fetch(this.frameProxy + "/" + encodeURIComponent(frameUrl), {
         method: "GET",
         headers: {
           "content-type": "application/json",
@@ -113,7 +117,7 @@ class FramesEmbedder {
           if (r.status !== 200) {
             throw r.text();
           }
-          return r.text();
+          return r.json();
         })
         .then((r) => {
           resolved(r);
@@ -336,7 +340,8 @@ class FramesEmbedder {
         headItem !== null &&
         headItem.nodeName === "META" &&
         headItem.getAttribute("property") !== null &&
-        headItem.getAttribute("property") === "fc:frame:state"
+        (headItem.getAttribute("property") === "fc:frame:state" ||
+          headItem.getAttribute("property") === "of:state")
       ) {
         return headItem.getAttribute("content");
       }
@@ -350,7 +355,8 @@ class FramesEmbedder {
         headItem !== null &&
         headItem.nodeName === "META" &&
         headItem.getAttribute("property") !== null &&
-        headItem.getAttribute("property") === "fc:frame:image"
+        (headItem.getAttribute("property") === "fc:frame:image" ||
+          headItem.getAttribute("property") === "of:image")
       ) {
         return headItem.getAttribute("content");
       }
@@ -459,9 +465,10 @@ class FramesEmbedder {
         transactionData === null ? undefined : transactionData.address
       )
         .then((r) => {
+          const { content, image } = r;
           if (
             buttonClicked.interaction === "tx" &&
-            this.checkIfTxResponse(r) === true
+            this.checkIfTxResponse(content) === true
           ) {
             frameElement.children[0].children[0].style.filter = "unset";
             this.emitFrameEvent(this.events.RENDERED, {
@@ -481,7 +488,8 @@ class FramesEmbedder {
           frameElement.innerHTML = this.renderFrame(
             true,
             frameElement,
-            r,
+            content,
+            image,
             frameTheme
           );
           frameElement.children[0].children[0].style.filter = "unset";
@@ -533,18 +541,21 @@ class FramesEmbedder {
       },
     };
     return new Promise((resolved, rejected) => {
-      fetch(postUrl, {
+      fetch(this.frameProxy, {
         method: "POST",
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          target: postUrl,
+          payload,
+        }),
       })
         .then(async (r) => {
           if (r.status !== 200) {
             throw r.text();
           }
-          return r.text();
+          return r.json();
         })
         .then((r) => {
           resolved(r);
@@ -575,6 +586,7 @@ class FramesEmbedder {
       false,
       frameElement,
       this.createFrameError(frameTheme),
+      null,
       frameTheme
     );
   }
@@ -587,6 +599,7 @@ class FramesEmbedder {
     renderImageNotHTML,
     frameParentElement,
     frameContent,
+    frameProxyImage = null,
     frameTheme = "dark"
   ) {
     const frameContentNodes = this.parseFrameHeadDOM(frameContent);
@@ -595,7 +608,10 @@ class FramesEmbedder {
       frameAspectRatio = this.getFrameAspectRaio(frameContentNodes);
       frameInputs = this.getFrameInputs(frameContentNodes);
       frameState = this.getFrameState(frameContentNodes);
-      frameImage = this.getFrameImage(frameContentNodes);
+      frameImage =
+        frameProxyImage === null
+          ? this.getFrameImage(frameContentNodes)
+          : frameProxyImage;
     }
     const content = new Blob(
       [
