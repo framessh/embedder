@@ -114,16 +114,16 @@ const probeImageSize = (imageUrl) => {
       method: "HEAD",
       signal: AbortSignal.timeout(5000),
     })
-      .then((r) => {
+      .then(async (r) => {
         if (r.status !== 200) {
-          throw r.text();
+          throw await r.text();
         }
         const headers = r.headers;
         const contentType = headers.get("content-type");
         const contentLength = headers.get("content-length");
         if (validImagesMimeTypes.includes(contentType) === false) {
           console.log("Invalid image type.");
-          throw r.text();
+          throw await r.text();
         }
         resolved(contentLength);
         return r.text();
@@ -142,9 +142,9 @@ const getImage = (imageUrl) => {
       method: "GET",
       signal: AbortSignal.timeout(5000),
     })
-      .then((r) => {
+      .then(async (r) => {
         if (r.status !== 200) {
-          throw r.text();
+          throw await r.text();
         }
         headers = r.headers;
         return r.arrayBuffer();
@@ -196,7 +196,7 @@ const getFrameImage = (parsedFrameContent) => {
       ) {
         const imageUrl = headItem.getAttribute("content");
         if (isValidUrl(imageUrl) === false) {
-          throw null;
+          throw Error("Invalid image URL");
         }
         return imageUrl;
       }
@@ -231,7 +231,7 @@ const processFrame = (targetUrl, method, payload = null) => {
     })
       .then(async (r) => {
         if (r.status !== 200) {
-          throw r.text();
+          throw await r.text();
         }
         return r.text();
       })

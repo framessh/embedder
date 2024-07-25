@@ -115,7 +115,7 @@ class FramesEmbedder {
       })
         .then(async (r) => {
           if (r.status !== 200) {
-            throw r.text();
+            throw await r.text();
           }
           return r.json();
         })
@@ -553,7 +553,7 @@ class FramesEmbedder {
       })
         .then(async (r) => {
           if (r.status !== 200) {
-            throw r.text();
+            throw await r.text();
           }
           return r.json();
         })
