@@ -303,13 +303,17 @@ appServe.get("/:frame", (req, res) => {
       return;
     }
     console.log("Frame proxy request received (GET):", frameUrl);
-    processFrame(frameUrl, "GET").then((result) => {
-      if (result instanceof Error) {
-        res.status(503).end(result);
-        return;
-      }
-      res.status(200).send(result);
-    });
+    processFrame(frameUrl, "GET")
+      .then((result) => {
+        if (result instanceof Error) {
+          res.status(503).end(result);
+          return;
+        }
+        res.status(200).send(result);
+      })
+      .catch((e) => {
+        res.status(503).end("Unknown error has occured.");
+      });
   } catch (e) {
     console.log(e);
     res.status(503).end("Unknown error");
@@ -325,13 +329,17 @@ appServe.post("/", (req, res) => {
       return;
     }
     console.log("Frame proxy request received (POST):", frameUrl);
-    processFrame(frameUrl, "POST", framePayload).then((result) => {
-      if (result instanceof Error) {
-        res.status(503).end(result);
-        return;
-      }
-      res.status(200).send(result);
-    });
+    processFrame(frameUrl, "POST", framePayload)
+      .then((result) => {
+        if (result instanceof Error) {
+          res.status(503).end(result);
+          return;
+        }
+        res.status(200).send(result);
+      })
+      .catch((e) => {
+        res.status(503).end("Unknown error has occured.");
+      });
   } catch (e) {
     res.status(503).end("Unknown error");
   }
