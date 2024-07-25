@@ -219,15 +219,6 @@ const processFrame = (targetUrl, method, payload = null) => {
         if (r.status !== 200) {
           throw r.text();
         }
-        const headers = r.headers;
-        const contentType = headers.get("content-type");
-        if (
-          contentType !== "text/html" &&
-          contentType !== "text/plain" &&
-          contentType === "application/json"
-        ) {
-          return r.json();
-        }
         return r.text();
       })
       .then((r) => {
