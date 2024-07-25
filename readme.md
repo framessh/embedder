@@ -6,7 +6,14 @@ This script allows for embedding Farcaster frames to websites. For more informat
 
 **RECOMMENDATIONS**:
 
-- To enable frames, make sure to add the frame's target URL to your CSP meta-tag.
+- To enable frames, make sure to add the Frame Proxy's URL to your CSP meta-tag, a default proxy "https://proxy.frames.sh" is provided and hosted by Frames.sh. See below to learn more about the frame proxy.
+
+```
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src *; frame-src blob: https://proxy.frames.sh; img-src 'self' * data: blob: https://proxy.frames.sh; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';"
+  />
+```
 
 **Live Demo**: https://ny-1.frames.sh/v/38875/demo.html
 
@@ -14,8 +21,8 @@ This script allows for embedding Farcaster frames to websites. For more informat
 
 The required files are:
 
-- embedder.css - includes styling for the embedded frames and its components.
-- embedder.js - includes the script for processing frame embeds.
+- **embedder.css** - includes styling for the embedded frames and its components.
+- **embedder.js** - includes the script for processing frame embeds.
 
 ### Embedding Frames
 
@@ -58,7 +65,7 @@ The events data includes:
 
 ```
   interface Event {
-    type: "Frame loading" | "Frame rendered" | "Frame faled render" | "Frame button clicked" | "Frame transaction" | "Frame mint",
+    type: "Frame loading" | "Frame rendered" | "Frame failed render" | "Frame button clicked" | "Frame transaction" | "Frame mint",
     content: {
       frameId: (string) the data-frame-embedder-id value assigned during frame load
       url: (string) the post url target of the frame
@@ -125,3 +132,56 @@ As per the frame spec, the client/host is expected to send an action to the fram
 
   frameEmebdder.performAction(frameId, frameInputs, frameState, buttonIndex, transactionData);
 ```
+
+### Frame Proxy
+
+To circumvent the CSP issue when loading frames directly from different frame servers, a proxy is used to centralize the provision of frame content including the frame html and image.
+
+The proxy POST payload when performing a POST action to a frame requires the following structure:
+
+```
+interface ProxyPayload{
+  target: (string) - url of the POST target (the target or post_url of the button clicked),
+  payload: frame spec signature pacjet payload object - see https://docs.farcaster.xyz/developers/frames/spec#frame-signature-packet
+}
+```
+
+The response format is structured like so:
+
+```
+interface ProxyResponse{
+  content: the html content of the frame
+  image: the image url
+}
+```
+
+The role of the proxy is to relay the payload to the target frame server and deliver the response to the front. In the process, the proxy will parse the frame HTML content and pick the fc:frame:image/of:image url and download the image resource for storage. The image resource should be accessible from the proxy server and used as the value for the image key in ProxyResponse.
+
+A proxy daemon is provided in the /proxy folder. See the Installation & Running section below to learn more on how to get started.
+
+**Changing Default Proxy**
+
+A default proxy server is provided in the script. To change this default to a different server, change the `frameProxy` value in the script.
+
+**Installation & Running**
+
+To run your own instance of the proxy server, deploy the proxy inside the `proxy` folder.
+
+**Requirements:**
+
+- Node 18.x
+- SSL Certificates
+
+**Install the node package:**
+
+```
+npm install
+```
+
+**Install the service:**
+
+```
+bash install.sh <Working Directory>
+```
+
+Populate the SSL files required for the server in the `/ssl` folder.

@@ -1,0 +1,18 @@
+
+[Unit]
+Description=Frame Embedder Proxy Service
+After=network-online.target
+Wants=network-online.target systemd-networkd-wait-online.service
+StartLimitIntervalSec=500
+StartLimitBurst=5
+
+[Service]
+User=root
+WorkingDirectory=WORKING_DIR
+ExecStart=npm run start
+Restart=always
+Restart=on-failure
+RestartSec=3s
+
+[Install]
+WantedBy=multi-user.target
