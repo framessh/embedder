@@ -89,6 +89,20 @@ const isValidPayload = (payload) => {
   );
 };
 
+const isTxResponse = (reponse) => {
+  try {
+    const data = typeof response === "string" ? JSON.parse(response) : response;
+    return (
+      "chainId" in data === true &&
+      "method" in data === true &&
+      "params" in data &&
+      "to" in data.params
+    );
+  } catch (e) {
+    return false;
+  }
+};
+
 const createImageId = (seed) => {
   return new Date().getTime() + "-" + v5(seed, imageIdNamespace);
 };
@@ -223,6 +237,9 @@ const processFrame = (targetUrl, method, payload = null) => {
       })
       .then((r) => {
         if (typeof r === "object" || testJSON(r) === true) {
+          if (isTxResponse(r) === false) {
+            throw "Not a transaciton response.";
+          }
           resolved({
             content: typeof r === "string" ? JSON.parse(r) : r,
           });
