@@ -177,5 +177,13 @@ Populate the SSL files required for the server in the `/ssl` folder. And run the
 **Install the service:**
 
 ```
-bash install.sh <Working Directory>
+bash install.sh
+```
+
+Edit the working directory in proxy.service to the current directory of the `proxy` folder.
+
+Install the service by running service.sh:
+
+```
+bash service.sh
 ```
