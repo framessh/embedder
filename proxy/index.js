@@ -1,3 +1,4 @@
+require("dotenv").config();
 const fs = require("fs");
 const express = require("express");
 const https = require("https");
@@ -5,9 +6,10 @@ const cors = require("cors");
 const { v5 } = require("uuid");
 const { parseFromString } = require("dom-parser");
 const expressRateLimit = require("express-rate-limit");
+const { BASE_URL, IMAGE_ID_NAMESPACE } = process.env;
 
-const imageIdNamespace = "b55a86a5-2089-4201-aeaa-8c7535695d7f";
-const baseUrl = "https://localhost";
+const imageIdNamespace = IMAGE_ID_NAMESPACE;
+const baseUrl = BASE_URL;
 const publicPath = "public";
 const imageExpireTimeMs = 60000;
 const checkForExpiredImagesMs = 60000;
