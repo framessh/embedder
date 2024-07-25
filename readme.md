@@ -174,6 +174,13 @@ To run your own instance of the proxy server, deploy the proxy inside the `proxy
 
 Populate the SSL files required for the server in the `/ssl` folder. And run the installation script (install.sh).
 
+Configure the environment file with the following:
+
+```
+  BASE_URL=<the publicly accessible URL path for the images>
+  IMAGE_ID_NAMESPACE=<the UUIDv5 namespace used for generating image IDs>
+```
+
 **Install the service:**
 
 ```
