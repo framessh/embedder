@@ -237,7 +237,9 @@ const processFrame = (targetUrl, method, payload = null) => {
       })
       .then((r) => {
         if (typeof r === "object" || testJSON(r) === true) {
-          if (isTxResponse(r) === false) {
+          if (
+            isTxResponse(typeof r === "string" ? JSON.parse(r) : r) === false
+          ) {
             throw "Not a transaciton response.";
           }
           resolved({
