@@ -194,3 +194,9 @@ Install the service by running service.sh:
 ```
 bash service.sh
 ```
+
+**Proxy services:**
+
+The proxy service provides both /public & /index paths for public access. The public path contains the cached images delivered on frame interactions. The public path cache is cleaned every minute, old images are removed.
+
+The index path contains the landing images for frames. The images are accessible based on the frame's target URL. To access the frame images, encode the frame target URL in the path i.e. `https://proxy.frames.sh/index/https%3A%2F%2Fny-1.frames.sh%2Fv%2F38873`
