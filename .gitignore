@@ -1,0 +1,7 @@
+.env
+/proxy/ssl/ssl.key
+/proxy/ssl/ssl.crt
+/proxy/ssl/ca.crt
+/proxy/node_modules
+/proxy/public/*.*
+/proxy/index/*.*
