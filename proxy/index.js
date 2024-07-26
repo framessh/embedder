@@ -11,6 +11,7 @@ const { BASE_URL, IMAGE_ID_NAMESPACE } = process.env;
 const imageIdNamespace = IMAGE_ID_NAMESPACE;
 const baseUrl = BASE_URL;
 const publicPath = "public";
+const indexPath = "index";
 const imageExpireTimeMs = 60000;
 const checkForExpiredImagesMs = 60000;
 const maxImageSize = 1048576 * 5;
@@ -30,6 +31,7 @@ const sslCredentials = {
 const appServe = express();
 appServe.use(cors());
 appServe.use("/" + publicPath, express.static("public"));
+appServe.use("/" + indexPath, express.static("index"));
 appServe.use(express.urlencoded({ limit: "10kb", extended: true }));
 appServe.use(
   express.json({
@@ -163,13 +165,24 @@ const getImage = (imageUrl) => {
   });
 };
 
-const saveImage = (imageArrayBuffer, imageMimeType) => {
+const saveImage = (
+  frameUrl,
+  imageArrayBuffer,
+  imageMimeType,
+  indexFrame = false
+) => {
   const imageId = createImageId(
     (new Date().getTime() + Math.random() * 999999999).toString()
   );
-  const buffer = Buffer.from(imageArrayBuffer);
   const fileExtension = imageMimeType.split("/")[1];
-  fs.createWriteStream("public/" + imageId + "." + fileExtension).write(buffer);
+  fs.createWriteStream("public/" + imageId + "." + fileExtension).write(
+    Buffer.from(imageArrayBuffer)
+  );
+  if (indexFrame === true) {
+    fs.createWriteStream(
+      "index/" + encodeURIComponent(frameUrl) + "." + fileExtension
+    ).write(Buffer.from(imageArrayBuffer));
+  }
   return baseUrl + "/public/" + imageId + "." + fileExtension;
 };
 
@@ -276,7 +289,7 @@ const processFrame = (targetUrl, method, payload = null) => {
           return null;
         }
         const { buffer, mimeType } = r;
-        return saveImage(buffer, mimeType);
+        return saveImage(targetUrl, buffer, mimeType, method === "GET");
       })
       .then((r) => {
         resolved({
