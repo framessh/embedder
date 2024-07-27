@@ -41,7 +41,7 @@ appServe.use(
 appServe.use(
   expressRateLimit({
     windowMs: 60000,
-    max: 1000,
+    max: 10000,
     keyGenerator: (req, res) => {
       return req.clientIp;
     },
@@ -180,7 +180,7 @@ const saveImage = (
   );
   if (indexFrame === true) {
     fs.createWriteStream(
-      "index/" + encodeURIComponent(frameUrl) + "." + fileExtension
+      "index/" + frameUrl.replace(/[^0-9a-zA-Z]/g, "") + "." + fileExtension
     ).write(Buffer.from(imageArrayBuffer));
   }
   return baseUrl + "/public/" + imageId + "." + fileExtension;
