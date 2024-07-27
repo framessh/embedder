@@ -30,8 +30,8 @@ const sslCredentials = {
 
 const appServe = express();
 appServe.use(cors());
-appServe.use("/" + publicPath, express.static("public"));
-appServe.use("/" + indexPath, express.static("index"));
+appServe.use("/" + publicPath, express.static(__dirname + "/public"));
+appServe.use("/" + indexPath, express.static(__dirname + "/index"));
 appServe.use(express.urlencoded({ limit: "10kb", extended: true }));
 appServe.use(
   express.json({
