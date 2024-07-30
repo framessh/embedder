@@ -189,7 +189,7 @@ const saveImage = (
 const parseFrameContent = (frameContent) => {
   try {
     const doc = parseFromString(
-      frameContent.replace(/^<\!DOCTYPE[^<]+>/g, ""),
+      frameContent.replace(/<\![^<]+>/g, ""),
       "text/html"
     );
     const head = doc.getElementsByTagName("head")[0];
@@ -201,6 +201,7 @@ const parseFrameContent = (frameContent) => {
 
 const getFrameImage = (parsedFrameContent) => {
   try {
+    let frameImageFound = false;
     for (let i = 0; i < parsedFrameContent.length; i++) {
       const headItem = parsedFrameContent[i];
       if (
@@ -211,13 +212,29 @@ const getFrameImage = (parsedFrameContent) => {
         (headItem.getAttribute("property") === "fc:frame:image" ||
           headItem.getAttribute("name") === "fc:frame:image" ||
           headItem.getAttribute("property") === "of:image" ||
-          headItem.getAttribute("name") === "of:image")
+          headItem.getAttribute("name") === "of:image" ||
+          headItem.getAttribute("property") === "og:image" ||
+          headItem.getAttribute("name") === "og:image")
       ) {
         const imageUrl = headItem.getAttribute("content");
         if (isValidUrl(imageUrl) === false) {
           throw Error("Invalid image URL");
         }
-        return imageUrl;
+        if (
+          headItem.getAttribute("property") === "fc:frame:image" ||
+          headItem.getAttribute("name") === "fc:frame:image" ||
+          headItem.getAttribute("property") === "of:image" ||
+          headItem.getAttribute("name") === "of:image"
+        ) {
+          frameImageFound = true;
+          return imageUrl;
+        } else if (
+          frameImageFound === false &&
+          (headItem.getAttribute("property") === "og:image" ||
+            headItem.getAttribute("name") === "og:image")
+        ) {
+          return imageUrl;
+        }
       }
     }
     return Error("No image found in content.");
