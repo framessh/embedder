@@ -29,7 +29,13 @@ const sslCredentials = {
 };
 
 const appServe = express();
-appServe.use(cors());
+appServe.use(
+  cors({
+    origin: ["*"],
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedOrigin: "*",
+  })
+);
 appServe.use("/" + publicPath, express.static(__dirname + "/public"));
 appServe.use("/" + indexPath, express.static(__dirname + "/index"));
 appServe.use(express.urlencoded({ limit: "10kb", extended: true }));
