@@ -17,6 +17,14 @@ This script allows for embedding Farcaster frames to websites. For more informat
 
 **Live Demo**: https://ny-1.frames.sh/v/38875/demo.html
 
+**Proxy Server Recommended Configuration:**:
+
+```
+  At least 2GB GPU RAM
+  At least 8GB CPU RAM
+  Sudoer user (not root) - for chromium
+```
+
 ### Required Files
 
 The required files are:
