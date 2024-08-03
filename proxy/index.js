@@ -198,7 +198,7 @@ const parseFrameContent = (frameContent) => {
 const captureImage = (frameUrl) => {
   return new Promise((resolved, rejected) => {
     console.log("Capturing image:", frameUrl);
-    console.log("Capture tool:", chromium.path);
+    console.log("Capture tool:", CHROME_PATH);
     (chromiumInitialised === false
       ? shotFactory.init({
           concurrency: 3,
