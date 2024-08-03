@@ -9,7 +9,7 @@ const { parseFromString } = require("dom-parser");
 const expressRateLimit = require("express-rate-limit");
 const shotFactory = require("webshot-factory");
 
-const { BASE_URL, IMAGE_ID_NAMESPACE } = process.env;
+const { BASE_URL, IMAGE_ID_NAMESPACE, CHROME_PATH } = process.env;
 
 const imageIdNamespace = IMAGE_ID_NAMESPACE;
 const baseUrl = BASE_URL;
@@ -70,14 +70,14 @@ const removeStaleImages = () => {
     working = true;
     console.log("Checking for expired images...");
     const now = new Date().getTime();
-    const filesListRaw = fs.readdirSync("public/");
+    const filesListRaw = fs.readdirSync(__dirname + "/public/");
     const files = filesListRaw.filter(
       (f) => f !== "." && f !== ".." && f !== ".gitkeep"
     );
     for (const f of files) {
       const fileCreatedAt = f.split("-")[0];
       if (parseInt(fileCreatedAt) + imageExpireTimeMs < now) {
-        fs.unlinkSync("public/" + f);
+        fs.unlinkSync(__dirname + "/public/" + f);
       }
     }
     console.log("Checking for expired images done. Stale images removed.");
@@ -166,12 +166,16 @@ const saveImage = (
     (new Date().getTime() + Math.random() * 999999999).toString()
   );
   const fileExtension = imageMimeType.split("/")[1];
-  fs.createWriteStream("public/" + imageId + "." + fileExtension).write(
-    Buffer.from(imageArrayBuffer)
-  );
+  fs.createWriteStream(
+    __dirname + "/public/" + imageId + "." + fileExtension
+  ).write(Buffer.from(imageArrayBuffer));
   if (indexFrame === true) {
     fs.createWriteStream(
-      "index/" + frameUrl.replace(/[^0-9a-zA-Z]/g, "") + "." + fileExtension
+      __dirname +
+        "/index/" +
+        frameUrl.replace(/[^0-9a-zA-Z]/g, "") +
+        "." +
+        fileExtension
     ).write(Buffer.from(imageArrayBuffer));
   }
   return baseUrl + "/public/" + imageId + "." + fileExtension;
@@ -203,19 +207,22 @@ const captureImage = (frameUrl) => {
         width: 1200,
         height: 630,
         timeout: 60000,
-        chromeExecutablePath: chromium.path,
+        chromeExecutablePath: CHROME_PATH,
       })
       .then((r) => {
         return shotFactory.getShot(frameUrl);
       })
       .then((buffer) => {
+        console.log("Image captured.");
         const imageId = createImageId(
           (new Date().getTime() + Math.random() * 999999999).toString()
         );
         fs.createWriteStream(
-          "index/" + frameUrl.replace(/[^0-9a-zA-Z]/g, "") + ".png"
+          __dirname + "/index/" + frameUrl.replace(/[^0-9a-zA-Z]/g, "") + ".png"
         ).write(buffer);
-        fs.createWriteStream("public/" + imageId + ".png").write(buffer);
+        fs.createWriteStream(__dirname + "/public/" + imageId + ".png").write(
+          buffer
+        );
         resolved(baseUrl + "/public/" + imageId + ".png");
       })
       .catch((e) => {
