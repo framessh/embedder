@@ -39,8 +39,6 @@ appServe.use(
     allowedOrigin: "*",
   })
 );
-appServe.use("/" + publicPath, express.static(__dirname + "/public", { etag: false }));
-appServe.use("/" + indexPath, express.static(__dirname + "/index", { etag: false }));
 appServe.use(express.urlencoded({ limit: "10kb", extended: true }));
 appServe.use(
   express.json({
@@ -357,6 +355,42 @@ const testJSON = (json) => {
   }
   return true;
 };
+
+appServe.get("/index/:resource", (req, res) => {
+  try {
+    const resource = req.params.resource;
+    if (/[^0-9a-zA-Z\.]/g.test(resource) === true) {
+      res.status(500).end("Invalid resource.");
+      return;
+    }
+    if (fs.existsSync(__dirname + "/index/" + resource) === false) {
+      res.status(500).end("Invalid resource.");
+      return;
+    }
+    res.sendFile(__dirname + "/index/" + resource);
+  } catch (e) {
+    console.log(e);
+    res.status(503).end("Unknown error");
+  }
+});
+
+appServe.get("/public/:resource", (req, res) => {
+  try {
+    const resource = req.params.resource;
+    if (/[^0-9a-zA-Z\.\-]/g.test(resource) === true) {
+      res.status(500).end("Invalid resource.");
+      return;
+    }
+    if (fs.existsSync(__dirname + "/public/" + resource) === false) {
+      res.status(500).end("Invalid resource.");
+      return;
+    }
+    res.sendFile(__dirname + "/public/" + resource);
+  } catch (e) {
+    console.log(e);
+    res.status(503).end("Unknown error");
+  }
+});
 
 appServe.get("/:frame", (req, res) => {
   try {
