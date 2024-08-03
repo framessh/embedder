@@ -7,7 +7,7 @@ StartLimitIntervalSec=500
 StartLimitBurst=5
 
 [Service]
-User=root
+User=<SUDOER USER>
 WorkingDirectory=WORKING_DIR
 ExecStart=npm run start
 Restart=always
