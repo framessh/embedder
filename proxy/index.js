@@ -6,6 +6,8 @@ const cors = require("cors");
 const { v5 } = require("uuid");
 const { parseFromString } = require("dom-parser");
 const expressRateLimit = require("express-rate-limit");
+const shotFactory = require("webshot-factory");
+
 const { BASE_URL, IMAGE_ID_NAMESPACE } = process.env;
 
 const imageIdNamespace = IMAGE_ID_NAMESPACE;
@@ -201,8 +203,41 @@ const parseFrameContent = (frameContent) => {
     const head = doc.getElementsByTagName("head")[0];
     return head.childNodes;
   } catch (e) {
+    console.log(e);
     return Error("Invalid frame content.");
   }
+};
+
+const captureImage = (frameUrl) => {
+  return new Promise((resolved, rejected) => {
+    shotFactory
+      .init({
+        concurrency: 1,
+        callbackName: "",
+        warmerUrl: frameUrl,
+        width: 1000,
+        height: 600,
+        timeout: 60000,
+        webshotDebugPort: 3030,
+      })
+      .then((r) => {
+        return shotFactory.getShot(frameUrl);
+      })
+      .then((buffer) => {
+        const imageId = createImageId(
+          (new Date().getTime() + Math.random() * 999999999).toString()
+        );
+        fs.createWriteStream(
+          "index/" + frameUrl.replace(/[^0-9a-zA-Z]/g, "") + ".png"
+        ).write(buffer);
+        fs.createWriteStream("public/" + imageId + ".png").write(buffer);
+        resolved(baseUrl + "/public/" + imageId + ".png");
+      })
+      .catch((e) => {
+        console.log(e);
+        rejected(Error("Cannot start page capture instance."));
+      });
+  });
 };
 
 const getFrameImage = (parsedFrameContent) => {
@@ -272,7 +307,7 @@ const processFrame = (targetUrl, method, payload = null) => {
         : {}),
     })
       .then(async (r) => {
-        if (r.status !== 200) {
+        if (r.status !== 200 && r.status !== 500) {
           throw await r.text();
         }
         return r.text();
@@ -280,7 +315,7 @@ const processFrame = (targetUrl, method, payload = null) => {
       .then((r) => {
         if (typeof r === "object" || testJSON(r) === true) {
           if (isTxResponse(r) === false) {
-            throw "Not a transaciton response.";
+            throw "Not a transaction response.";
           }
           resolved({
             content: typeof r === "string" ? JSON.parse(r) : r,
@@ -293,17 +328,34 @@ const processFrame = (targetUrl, method, payload = null) => {
         }
         frameContentRaw = r;
         frameImage = getFrameImage(parsedContent);
+        let probeImage = true;
         if (frameImage instanceof Error) {
-          throw "Failed to get frame image";
+          probeImage = false;
+          return Promise.all([
+            new Promise((resolved) => {
+              resolved(probeImage);
+            }),
+            captureImage(targetUrl),
+          ]);
         }
-        return probeImageSize(frameImage);
+        return Promise.all([
+          new Promise((resolved) => resolved(probeImage)),
+          probeImageSize(frameImage),
+        ]);
       })
-      .then((imageSize) => {
-        if (imageSize === null) {
+      .then((probeResult) => {
+        const [isProbeResult, imageSizeOrCapturedResult] = probeResult;
+        if (isProbeResult === true && imageSizeOrCapturedResult === null) {
           return null;
         }
-        if (imageSize > maxImageSize) {
+        if (
+          isProbeResult === true &&
+          imageSizeOrCapturedResult > maxImageSize
+        ) {
           throw "Image too large.";
+        }
+        if (isProbeResult === false) {
+          return imageSizeOrCapturedResult;
         }
         return getImage(frameImage);
       })
