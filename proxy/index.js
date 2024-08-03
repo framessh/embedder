@@ -1,4 +1,5 @@
 require("dotenv").config();
+const chromium = require("chromium");
 const fs = require("fs");
 const express = require("express");
 const https = require("https");
@@ -8,7 +9,7 @@ const { parseFromString } = require("dom-parser");
 const expressRateLimit = require("express-rate-limit");
 const shotFactory = require("webshot-factory");
 
-const { BASE_URL, IMAGE_ID_NAMESPACE, CHROME_PATH } = process.env;
+const { BASE_URL, IMAGE_ID_NAMESPACE } = process.env;
 
 const imageIdNamespace = IMAGE_ID_NAMESPACE;
 const baseUrl = BASE_URL;
@@ -192,6 +193,8 @@ const parseFrameContent = (frameContent) => {
 
 const captureImage = (frameUrl) => {
   return new Promise((resolved, rejected) => {
+    console.log("Capturing image:", frameUrl);
+    console.log("Capture tool:", chromium.path);
     shotFactory
       .init({
         concurrency: 3,
@@ -200,8 +203,7 @@ const captureImage = (frameUrl) => {
         width: 1200,
         height: 630,
         timeout: 60000,
-        webshotDebugPort: 3030,
-        chromeExecutablePath: CHROME_PATH,
+        chromeExecutablePath: chromium.path,
       })
       .then((r) => {
         return shotFactory.getShot(frameUrl);
@@ -314,21 +316,16 @@ const processFrame = (targetUrl, method, payload = null) => {
         let probeImage = true;
         if (frameImage instanceof Error) {
           probeImage = false;
-          return Promise.all([
-            new Promise((resolved) => {
-              resolved(probeImage);
-            }),
-            captureImage(targetUrl),
-          ]);
+          return Promise.all([probeImage, captureImage(targetUrl)]);
         }
-        return Promise.all([
-          new Promise((resolved) => resolved(probeImage)),
-          probeImageSize(frameImage),
-        ]);
+        return Promise.all([probeImage, probeImageSize(frameImage)]);
       })
       .then((probeResult) => {
         const [isProbeResult, imageOrCapturedResult] = probeResult;
         if (isProbeResult === true && imageOrCapturedResult === null) {
+          return null;
+        }
+        if (isProbeResult === false) {
           return null;
         }
         return imageOrCapturedResult;
