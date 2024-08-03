@@ -1,5 +1,4 @@
 require("dotenv").config();
-const chromium = require("chromium");
 const fs = require("fs");
 const express = require("express");
 const https = require("https");
@@ -24,6 +23,7 @@ const validImagesMimeTypes = [
   "image/gif",
   "image/jpeg",
 ];
+let chromiumInitialised = false;
 
 const sslCredentials = {
   key: fs.readFileSync(__dirname + "/ssl/ssl.key", "utf-8"),
@@ -199,17 +199,20 @@ const captureImage = (frameUrl) => {
   return new Promise((resolved, rejected) => {
     console.log("Capturing image:", frameUrl);
     console.log("Capture tool:", chromium.path);
-    shotFactory
-      .init({
-        concurrency: 3,
-        callbackName: "",
-        warmerUrl: frameUrl,
-        width: 1200,
-        height: 630,
-        timeout: 60000,
-        chromeExecutablePath: CHROME_PATH,
-      })
+    (chromiumInitialised === false
+      ? shotFactory.init({
+          concurrency: 3,
+          callbackName: "",
+          warmerUrl: frameUrl,
+          width: 1200,
+          height: 630,
+          timeout: 60000,
+          chromeExecutablePath: CHROME_PATH,
+        })
+      : new Promise((resolved) => resolved(true))
+    )
       .then((r) => {
+        chromiumInitialised = true;
         return shotFactory.getShot(frameUrl);
       })
       .then((buffer) => {
