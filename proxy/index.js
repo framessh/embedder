@@ -8,7 +8,7 @@ const { parseFromString } = require("dom-parser");
 const expressRateLimit = require("express-rate-limit");
 const shotFactory = require("webshot-factory");
 
-const { BASE_URL, IMAGE_ID_NAMESPACE } = process.env;
+const { BASE_URL, IMAGE_ID_NAMESPACE, CHROME_PATH } = process.env;
 
 const imageIdNamespace = IMAGE_ID_NAMESPACE;
 const baseUrl = BASE_URL;
@@ -219,6 +219,7 @@ const captureImage = (frameUrl) => {
         height: 600,
         timeout: 60000,
         webshotDebugPort: 3030,
+        chromeExecutablePath: CHROME_PATH,
       })
       .then((r) => {
         return shotFactory.getShot(frameUrl);
