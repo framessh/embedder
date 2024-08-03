@@ -119,6 +119,7 @@ const createImageId = (seed) => {
 
 const probeImageSize = (imageUrl) => {
   return new Promise((resolved, rejected) => {
+    let headers;
     console.log("Probing image size for:", imageUrl);
     fetch(imageUrl, {
       method: "GET",
@@ -128,35 +129,16 @@ const probeImageSize = (imageUrl) => {
         if (r.status !== 200) {
           throw await r.text();
         }
-        const headers = r.headers;
+        headers = r.headers;
         const contentType = headers.get("content-type");
         const contentLength = headers.get("content-length");
         if (validImagesMimeTypes.includes(contentType) === false) {
           console.log("Invalid image type.");
           throw await r.text();
         }
-        resolved(contentLength);
-        return r.text();
-      })
-      .catch((e) => {
-        console.log(e);
-        rejected(Error("Could not probe image size."));
-      });
-  });
-};
-
-const getImage = (imageUrl) => {
-  return new Promise((resolved, rejected) => {
-    let headers;
-    fetch(imageUrl, {
-      method: "GET",
-      signal: AbortSignal.timeout(5000),
-    })
-      .then(async (r) => {
-        if (r.status !== 200) {
-          throw await r.text();
+        if (contentLength > maxImageSize) {
+          throw "Image too large";
         }
-        headers = r.headers;
         return r.arrayBuffer();
       })
       .then((r) => {
@@ -168,7 +150,7 @@ const getImage = (imageUrl) => {
       })
       .catch((e) => {
         console.log(e);
-        rejected(Error("Could not get image."));
+        rejected(Error("Could not probe image size."));
       });
   });
 };
@@ -212,11 +194,11 @@ const captureImage = (frameUrl) => {
   return new Promise((resolved, rejected) => {
     shotFactory
       .init({
-        concurrency: 1,
+        concurrency: 3,
         callbackName: "",
         warmerUrl: frameUrl,
-        width: 1000,
-        height: 600,
+        width: 1200,
+        height: 630,
         timeout: 60000,
         webshotDebugPort: 3030,
         chromeExecutablePath: CHROME_PATH,
@@ -345,20 +327,11 @@ const processFrame = (targetUrl, method, payload = null) => {
         ]);
       })
       .then((probeResult) => {
-        const [isProbeResult, imageSizeOrCapturedResult] = probeResult;
-        if (isProbeResult === true && imageSizeOrCapturedResult === null) {
+        const [isProbeResult, imageOrCapturedResult] = probeResult;
+        if (isProbeResult === true && imageOrCapturedResult === null) {
           return null;
         }
-        if (
-          isProbeResult === true &&
-          imageSizeOrCapturedResult > maxImageSize
-        ) {
-          throw "Image too large.";
-        }
-        if (isProbeResult === false) {
-          return imageSizeOrCapturedResult;
-        }
-        return getImage(frameImage);
+        return imageOrCapturedResult;
       })
       .then((r) => {
         if (r === null) {
