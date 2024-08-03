@@ -39,8 +39,8 @@ appServe.use(
     allowedOrigin: "*",
   })
 );
-appServe.use("/" + publicPath, express.static(__dirname + "/public"));
-appServe.use("/" + indexPath, express.static(__dirname + "/index"));
+appServe.use("/" + publicPath, express.static(__dirname + "/public", { etag: false }));
+appServe.use("/" + indexPath, express.static(__dirname + "/index", { etag: false }));
 appServe.use(express.urlencoded({ limit: "10kb", extended: true }));
 appServe.use(
   express.json({
