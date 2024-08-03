@@ -121,7 +121,7 @@ const probeImageSize = (imageUrl) => {
   return new Promise((resolved, rejected) => {
     console.log("Probing image size for:", imageUrl);
     fetch(imageUrl, {
-      method: "HEAD",
+      method: "GET",
       signal: AbortSignal.timeout(5000),
     })
       .then(async (r) => {
