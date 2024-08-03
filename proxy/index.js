@@ -201,7 +201,7 @@ const captureImage = (frameUrl) => {
     console.log("Capture tool:", CHROME_PATH);
     (chromiumInitialised === false
       ? shotFactory.init({
-          concurrency: 3,
+          concurrency: 10,
           callbackName: "",
           warmerUrl: frameUrl,
           width: 1200,
