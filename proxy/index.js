@@ -323,22 +323,10 @@ const processFrame = (targetUrl, method, payload = null) => {
         }
         frameContentRaw = r;
         frameImage = getFrameImage(parsedContent);
-        let probeImage = true;
         if (frameImage instanceof Error) {
-          probeImage = false;
-          return Promise.all([probeImage, captureImage(targetUrl)]);
-        }
-        return Promise.all([probeImage, probeImageSize(frameImage)]);
-      })
-      .then((probeResult) => {
-        const [isProbeResult, imageOrCapturedResult] = probeResult;
-        if (isProbeResult === true && imageOrCapturedResult === null) {
           return null;
         }
-        if (isProbeResult === false) {
-          return null;
-        }
-        return imageOrCapturedResult;
+        return probeImageSize(frameImage);
       })
       .then((r) => {
         if (r === null) {
