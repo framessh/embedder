@@ -1,286 +1,290 @@
 .frame-embedder-container {
-  display: flex;
-  flex-direction: column;
-  border-radius: 4px;
-  border: solid 1px #b4b4b4;
-  background-color: #cacaca;
-  overflow: hidden;
+  display: flex !important;
+  flex-direction: column !important;
+  border-radius: 4px !important;
+  border: solid 1px #b4b4b4 !important;
+  background-color: #cacaca !important;
+  overflow: hidden !important;
 }
 
 .frame-embedder-hidden {
-  display: none;
+  display: none !important;
 }
 
 .frame-embedder-error {
-  background-color: #ff0f0f;
+  background-color: #ff0f0f !important;
 }
 
 .frame-embedder-error.dark {
-  background-color: #1a1a1a;
+  background-color: #1a1a1a !important;
 }
 
 .frame-embedder-container.dark {
-  background-color: #1e1e1e;
-  border: solid 1px #1a1a1a;
+  background-color: #1e1e1e !important;
+  border: solid 1px #1a1a1a !important;
 }
 
 .frame-embedder-frame {
-  overflow: hidden;
-  box-sizing: border-box;
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-  border: 0;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  border-top-left-radius: 4px !important;
+  border-top-right-radius: 4px !important;
+  border: 0 !important;
 }
 
 .frame-embedder-container.dark {
-  border: solid 1px #3a3a3a;
+  border: solid 1px #3a3a3a !important;
 }
 
 .frame-embedder-inputs {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  box-sizing: border-box;
-  background-color: #cacaca;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  padding: 10px !important;
+  box-sizing: border-box !important;
+  background-color: #cacaca !important;
 }
 
 .frame-embedder-inputs.dark {
-  background-color: #1e1e1e;
+  background-color: #1e1e1e !important;
 }
 
 .frame-embedder-input-text {
-  width: 100%;
-  background-color: #fff;
-  border: solid 1px #b8b8b8;
-  border-radius: 4px;
-  padding: 10px;
-  outline: none;
+  width: 100% !important;
+  background-color: #fff !important;
+  border: solid 1px #b8b8b8 !important;
+  border-radius: 4px !important;
+  padding: 5px 10px !important;
+  outline: none !important;
 }
 
 .frame-embedder-input-text.dark {
-  background-color: #0a0a0a;
-  border: solid 1px #3a3a3a;
-  color: white;
+  background-color: #0a0a0a !important;
+  border: solid 1px #3a3a3a !important;
+  color: white !important;
 }
 
 .frame-embedder-buttons-container {
-  display: flex;
-  width: 100%;
-  flex-direction: row;
-  gap: 5px;
+  display: flex !important;
+  width: 100% !important;
+  flex-direction: row !important;
+  gap: 5px !important;
 }
 
 .frame-embedder-popup-header-button,
 .frame-embedder-popup-button,
 .frame-embedder-buttons {
-  flex: 1;
-  border: 0;
-  border-radius: 4px;
-  color: #1a1a1a;
-  cursor: pointer;
-  padding: 10px;
-  outline: none;
-  background-color: #aeaeae;
+  flex: 1 !important;
+  border: 0 !important;
+  border-radius: 4px !important;
+  color: #1a1a1a !important;
+  cursor: pointer !important;
+  padding: 5px !important;
+  outline: none !important;
+  background-color: #aeaeae !important;
 }
 
 .frame-embedder-popup-header-button {
-  padding: 5px 10px;
+  padding: 5px 10px !important;
 }
 
 .frame-embedder-popup-header-button-close {
-  font-size: 16px;
+  font-size: 16px !important;
 }
 
 .frame-embedder-popup-header-button:hover,
 .frame-embedder-popup-button:hover,
 .frame-embedder-buttons:hover {
-  background-color: #a1a1a1;
+  background-color: #a1a1a1 !important;
 }
 
 .frame-embedder-popup-header-button.dark,
 .frame-embedder-popup-button.dark,
 .frame-embedder-buttons.dark {
-  background-color: #3a3a3a;
-  color: white;
+  background-color: #3a3a3a !important;
+  color: white !important;
 }
 
 .frame-embedder-popup-header-button.dark:hover,
 .frame-embedder-popup-button.dark:hover,
 .frame-embedder-buttons.dark:hover {
-  background-color: #4a4a4a;
+  background-color: #4a4a4a !important;
 }
 
 .frame-embedder-button-icon {
-  font-size: 20px;
-  margin-right: -12px;
+  font-size: 20px !important;
+  margin-right: -12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .frame-embedder-button-icon.dark {
-  color: #8a8a8a;
+  color: #8a8a8a !important;
 }
 
 .frame-embedder-button-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
 }
 
 /**
   Frame popup componenets
 **/
 .frame-embedder-popup {
-  display: none;
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%);
-  padding: 10px;
-  width: 350px;
-  border-radius: 8px;
-  background-color: #cacaca;
-  color: #333;
-  flex-direction: column;
-  gap: 10px;
-  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  display: none !important;
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%) !important;
+  z-index: 1000;
+  padding: 10px !important;
+  width: 350px !important;
+  border-radius: 8px !important;
+  background-color: #cacaca !important;
+  color: #333 !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px !important;
 }
 
 .frame-embedder-popup.dark {
-  background-color: #1e1e1e;
-  color: #555;
+  background-color: #1e1e1e !important;
+  color: #555 !important;
 }
 
 .frame-embedder-popup-header {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 18px;
-  font-weight: bold;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
 }
 
 .frame-embedder-popup-header-middle.dark {
-  color: white;
+  color: white !important;
 }
 
 .frame-embedder-popup-header-left,
 .frame-embedder-popup-header-right {
-  flex: 0 0 30px;
+  flex: 0 0 30px !important;
 }
 
 .frame-embedder-popup-content {
-  display: flex;
-  flex-direction: column;
-  padding: 5px 5px 15px 5px;
-  gap: 10px;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 5px 5px 15px 5px !important;
+  gap: 10px !important;
 }
 
 .frame-embedder-popup-content-item {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
 }
 
 .frame-embedder-popup-content-item-right {
-  color: #333;
-  text-align: right;
+  color: #333 !important;
+  text-align: right !important;
 }
 
 .frame-embedder-popup-content-item-right.dark {
-  color: white;
+  color: white !important;
 }
 
 .frame-embedder-popup-content-item-note {
-  width: 100%;
-  font-size: 14px;
-  color: #777;
-  text-align: center;
+  width: 100% !important;
+  font-size: 14px !important;
+  color: #777 !important;
+  text-align: center !important;
 }
 
 .frame-embedder-popup-content-item-note.dark {
-  color: #555;
+  color: #555 !important;
 }
 
 .frame-embedder-popup-content-item-note.frame-embedder-popup-message {
-  color: #555;
-  font-size: 16px;
+  color: #555 !important;
+  font-size: 16px !important;
 }
 
 .frame-embedder-popup-content-item-note.frame-embedder-popup-message.dark {
-  color: white;
+  color: white !important;
 }
 
 .frame-embedder-popup-footer {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 5px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 5px !important;
 }
 
 /**
   Popup Animations
 **/
 .slide-top {
-  -webkit-animation: slide-top 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-  animation: slide-top 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  -webkit-animation: slide-top 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) both !important;
+  animation: slide-top 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) both !important;
 }
 
 .slide-bottom {
   -webkit-animation: slide-bottom 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)
-    reverse both;
+    reverse both !important;
   animation: slide-bottom 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) reverse
-    both;
+    both !important;
 }
 
 @-webkit-keyframes slide-top {
   0% {
-    opacity: 0;
-    -webkit-transform: translate(-50%, 0);
-    transform: translate(-50%, 0);
+    opacity: 0 !important;
+    -webkit-transform: translate(-50%, 0) !important;
+    transform: translate(-50%, 0) !important;
   }
   100% {
-    opacity: 1;
-    -webkit-transform: translate(-50%, -200px);
-    transform: translate(-50%, -200px);
+    opacity: 1 !important;
+    -webkit-transform: translate(-50%, -200px) !important;
+    transform: translate(-50%, -200px) !important;
   }
 }
 @keyframes slide-top {
   0% {
-    opacity: 0;
-    -webkit-transform: translate(-50%, 0);
-    transform: translate(-50%, 0);
+    opacity: 0 !important;
+    -webkit-transform: translate(-50%, 0) !important;
+    transform: translate(-50%, 0) !important;
   }
   100% {
-    opacity: 1;
-    -webkit-transform: translate(-50%, -200px);
-    transform: translate(-50%, -200px);
+    opacity: 1 !important;
+    -webkit-transform: translate(-50%, -200px) !important;
+    transform: translate(-50%, -200px) !important;
   }
 }
 
 @-webkit-keyframes slide-bottom {
   0% {
-    opacity: 0;
-    -webkit-transform: translate(-50%, 0);
-    transform: translate(-50%, 0);
+    opacity: 0 !important;
+    -webkit-transform: translate(-50%, 0) !important;
+    transform: translate(-50%, 0) !important;
   }
   100% {
-    opacity: 1;
-    -webkit-transform: translate(-50%, -200px);
-    transform: translate(-50%, -200px);
+    opacity: 1 !important;
+    -webkit-transform: translate(-50%, -200px) !important;
+    transform: translate(-50%, -200px) !important;
   }
 }
 @keyframes slide-top {
   0% {
-    opacity: 0;
-    -webkit-transform: translate(-50%, 0);
-    transform: translate(-50%, 0);
+    opacity: 0 !important;
+    -webkit-transform: translate(-50%, 0) !important;
+    transform: translate(-50%, 0) !important;
   }
   100% {
-    opacity: 1;
-    -webkit-transform: translate(-50%, -200px);
-    transform: translate(-50%, -200px);
+    opacity: 1 !important;
+    -webkit-transform: translate(-50%, -200px) !important;
+    transform: translate(-50%, -200px) !important;
   }
 }
