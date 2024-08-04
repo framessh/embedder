@@ -39,8 +39,6 @@
 .frame-embedder-inputs {
   display: flex !important;
   flex-direction: column !important;
-  gap: 8px !important;
-  padding: 10px !important;
   box-sizing: border-box !important;
   background-color: #cacaca !important;
 }
@@ -82,6 +80,13 @@
   padding: 5px !important;
   outline: none !important;
   background-color: #aeaeae !important;
+}
+
+.frame-embedder-button-label {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  max-width: 60% !important;
 }
 
 .frame-embedder-popup-header-button {
@@ -288,3 +293,4 @@
     transform: translate(-50%, -200px) !important;
   }
 }
+
