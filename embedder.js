@@ -667,18 +667,28 @@ class FramesEmbedder {
       frameSize.width
     }px; height: ${frameSize.height}px;" src="${contentUrl}">
         </iframe>
-        <div class="frame-embedder-inputs ${frameTheme}">
-          ${
-            frameInputs === undefined || "inputText" in frameInputs === false
-              ? ""
-              : `<div class="frame-embedder-input ${frameTheme}">
-                  <input oninput="window.frameEmbedder.changeInputText('${frameParentElement.getAttribute(
-                    "frame-embedder-id"
-                  )}', this.value)" placeholder="${
-                  frameInputs["inputText"].title
-                }" class="frame-embedder-input-text ${frameTheme}" type="text">
-                </div>`
-          }
+        <div class="frame-embedder-inputs ${frameTheme}" style="${
+      Object.keys(frameInputs ?? {}).length <= 0
+        ? "padding: 0px; gap: 0px;"
+        : "padding: 10px;"
+    } ${
+      frameInputs !== undefined && "inputText" in frameInputs === true
+        ? "gap: 8px;"
+        : ""
+    }">
+          <div class="frame-embedder-input-text-container ${frameTheme}">
+            ${
+              frameInputs === undefined || "inputText" in frameInputs === false
+                ? ""
+                : `<div class="frame-embedder-input ${frameTheme}">
+                    <input oninput="window.frameEmbedder.changeInputText('${frameParentElement.getAttribute(
+                      "frame-embedder-id"
+                    )}', this.value)" placeholder="${
+                    frameInputs["inputText"].title
+                  }" class="frame-embedder-input-text ${frameTheme}" type="text">
+                  </div>`
+            }
+          </div>
           <div class="frame-embedder-buttons-container ${frameTheme}">
             ${
               frameInputs === undefined || "button1" in frameInputs === false
@@ -1003,4 +1013,3 @@ class FramesEmbedder {
 }
 const frameEmbedder = new FramesEmbedder();
 window.frameEmbedder = frameEmbedder;
-
