@@ -130,6 +130,14 @@ class FramesEmbedder {
     });
   }
 
+  clear() {
+    this.frameEmbedInputTextValues = {};
+    this.frameEmbedData = {};
+    this.frameEmbedElements = {};
+    this.framePopupStates = {};
+    this.frameButtonClicked = {};
+  }
+
   parseFrameHeadDOM(frameContent) {
     const doc = new DOMParser().parseFromString(frameContent, "text/html");
     const head = doc.children[0].children[0].children;
@@ -790,7 +798,7 @@ class FramesEmbedder {
   calculateFrameSize(frameParentElement, frameRatio = "1.91:1") {
     const ratioNumber = parseFloat(frameRatio.split(":")[0]);
     const frameWidth = frameParentElement.clientWidth;
-    return { width: frameWidth, height: frameWidth * (1 / ratioNumber) };
+    return { width: frameWidth, height: frameWidth * (1 / ratioNumber) - 2 };
   }
 
   emitFrameEvent(event, message) {
@@ -995,3 +1003,4 @@ class FramesEmbedder {
 }
 const frameEmbedder = new FramesEmbedder();
 window.frameEmbedder = frameEmbedder;
+
