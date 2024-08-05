@@ -66,6 +66,8 @@ Events are emitted on:
 - **Frame button clicked** - the event is emitted when a button is clicked
 - **Frame transaction** - the event is emitted when a transaction data is received
 - **Frame mint** - the event is emitted when a MINT action is invoked
+- **Frame notication popup** - the event is emitted when a notification popup is invoked
+- **Frame transaction popup** - the event is emitted when a transaction popup is invoked
 
 The host page can listen to these events and respond accordingly with the data provided in the event. Check the console logs in the demo for examples of the events emitted.
 
@@ -73,7 +75,7 @@ The events data includes:
 
 ```
   interface Event {
-    type: "Frame loading" | "Frame rendered" | "Frame failed render" | "Frame button clicked" | "Frame transaction" | "Frame mint",
+    type: "Frame loading" | "Frame rendered" | "Frame failed render" | "Frame button clicked" | "Frame transaction" | "Frame mint" | "Popup Notification" | "Popup transaction",
     content: {
       frameId: (string) the data-frame-embedder-id value assigned during frame load
       url: (string) the post url target of the frame
@@ -90,6 +92,12 @@ The events data includes:
     }
   }
 ```
+
+**Disabling and Enabling Popups**
+
+Popups can be disable and let the parent window handle popups independently. An event will be emitted on these actions. 
+
+Disable or enable the popups using: `disablePopups()` or `enablePopups`
 
 **Enabling Transactions**
 
