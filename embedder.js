@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 class FramesEmbedder {
   defaultFid = 628548;
   frameProxy = "https://proxy.frames.sh";
+  framePopupsDisabled = false;
   frameEmbedInputTextValues = {};
   frameEmbedData = {};
   frameEmbedElements = {};
@@ -35,6 +36,8 @@ class FramesEmbedder {
     CLICKED: "Frame button clicked",
     TX: "Frame transaction",
     MINT: "Frame mint",
+    POPUP_NOTIFICATION: "Popup notification",
+    POPUP_TRANSACTION: "Popup transaction",
   };
 
   constructor() {
@@ -128,6 +131,14 @@ class FramesEmbedder {
           return rejected(new Error(e));
         });
     });
+  }
+
+  disablePopups() {
+    this.framePopupsDisabled = true;
+  }
+
+  enablePopups() {
+    this.framePopupsDisabled = false;
   }
 
   clear() {
@@ -822,6 +833,23 @@ class FramesEmbedder {
   }
 
   toggleFramePopup(frameParentElementId, popupType) {
+    if (this.framePopupsDisabled === true) {
+      this.emitFrameEvent(
+        popupType === "notification"
+          ? this.events.POPUP_NOTIFICATION
+          : this.events.POPUP_TRANSACTION,
+        {
+          frameId: frameEmbedId,
+          url: frameData.url,
+          title: this.framePopupStates[frameParentElementId][popupType].title,
+          subtitle:
+            this.framePopupStates[frameParentElementId][popupType].subtitle,
+          message:
+            this.framePopupStates[frameParentElementId][popupType].message,
+        }
+      );
+      return;
+    }
     this.framePopupStates[frameParentElementId][popupType].opened =
       !this.framePopupStates[frameParentElementId][popupType].opened;
     const isOpen =
