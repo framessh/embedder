@@ -833,7 +833,17 @@ class FramesEmbedder {
   }
 
   toggleFramePopup(frameParentElementId, popupType) {
-    if (this.framePopupsDisabled === true) {
+    this.framePopupStates[frameParentElementId][popupType].opened =
+      !this.framePopupStates[frameParentElementId][popupType].opened;
+    const isOpen =
+      this.framePopupStates[frameParentElementId][popupType].opened === true;
+    const popupElement = document.querySelectorAll(
+      `[data-frame-embedder-popup-id='${frameParentElementId}-${popupType}']`
+    )[0];
+    if (
+      this.framePopupsDisabled === true &&
+      this.framePopupStates[frameParentElementId][popupType].opened === true
+    ) {
       this.emitFrameEvent(
         popupType === "notification"
           ? this.events.POPUP_NOTIFICATION
@@ -850,13 +860,6 @@ class FramesEmbedder {
       );
       return;
     }
-    this.framePopupStates[frameParentElementId][popupType].opened =
-      !this.framePopupStates[frameParentElementId][popupType].opened;
-    const isOpen =
-      this.framePopupStates[frameParentElementId][popupType].opened === true;
-    const popupElement = document.querySelectorAll(
-      `[data-frame-embedder-popup-id='${frameParentElementId}-${popupType}']`
-    )[0];
     if (popupElement === null) {
       return;
     }
@@ -1041,4 +1044,5 @@ class FramesEmbedder {
 }
 const frameEmbedder = new FramesEmbedder();
 window.frameEmbedder = frameEmbedder;
+
 
