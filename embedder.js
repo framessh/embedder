@@ -839,8 +839,8 @@ class FramesEmbedder {
           ? this.events.POPUP_NOTIFICATION
           : this.events.POPUP_TRANSACTION,
         {
-          frameId: frameEmbedId,
-          url: frameData.url,
+          frameId: frameParentElementId,
+          url: this.frameEmbedData[frameParentElementId].url,
           title: this.framePopupStates[frameParentElementId][popupType].title,
           subtitle:
             this.framePopupStates[frameParentElementId][popupType].subtitle,
@@ -1041,3 +1041,4 @@ class FramesEmbedder {
 }
 const frameEmbedder = new FramesEmbedder();
 window.frameEmbedder = frameEmbedder;
+
