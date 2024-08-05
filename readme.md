@@ -67,7 +67,6 @@ Events are emitted on:
 - **Frame transaction** - the event is emitted when a transaction data is received
 - **Frame mint** - the event is emitted when a MINT action is invoked
 - **Frame notication popup** - the event is emitted when a notification popup is invoked
-- **Frame transaction popup** - the event is emitted when a transaction popup is invoked
 
 The host page can listen to these events and respond accordingly with the data provided in the event. Check the console logs in the demo for examples of the events emitted.
 
@@ -75,7 +74,7 @@ The events data includes:
 
 ```
   interface Event {
-    type: "Frame loading" | "Frame rendered" | "Frame failed render" | "Frame button clicked" | "Frame transaction" | "Frame mint" | "Popup Notification" | "Popup transaction",
+    type: "Frame loading" | "Frame rendered" | "Frame failed render" | "Frame button clicked" | "Frame transaction" | "Frame mint" | "Popup Notification",
     content: {
       frameId: (string) the data-frame-embedder-id value assigned during frame load
       url: (string) the post url target of the frame
@@ -147,6 +146,14 @@ As per the frame spec, the client/host is expected to send an action to the fram
   };
 
   frameEmebdder.performAction(frameId, frameInputs, frameState, buttonIndex, transactionData);
+```
+
+**Change frame FID:**
+
+A frame FID default is used if fid is not set on the container. Frame FID can be changed using: 
+
+```
+window.frameEmbedder.setFid(<fid>);
 ```
 
 ### Frame Proxy
