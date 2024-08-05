@@ -37,7 +37,6 @@ class FramesEmbedder {
     TX: "Frame transaction",
     MINT: "Frame mint",
     POPUP_NOTIFICATION: "Popup notification",
-    POPUP_TRANSACTION: "Popup transaction",
   };
 
   constructor() {
@@ -147,6 +146,10 @@ class FramesEmbedder {
     this.frameEmbedElements = {};
     this.framePopupStates = {};
     this.frameButtonClicked = {};
+  }
+
+  setFrameFid(frameParentElementId, fid) {
+    this.frameEmbedData[frameParentElementId].fid = fid;
   }
 
   parseFrameHeadDOM(frameContent) {
@@ -451,21 +454,6 @@ class FramesEmbedder {
           }
         );
         this.toggleFramePopup(frameParentElementId, "notification");
-        return;
-      }
-      if (
-        (buttonClicked.interaction === "mint" ||
-          buttonClicked.interaction === "tx") &&
-        frameTransactionsEnabled === false
-      ) {
-        this.setNotificationPopup(
-          frameParentElementId,
-          "Unsupported Action",
-          "Tranasctions are unsupported.",
-          "A transaction has been requested by the frame. This action is currently not supported."
-        );
-        this.toggleFramePopup(frameParentElementId, "notification");
-        this.resetButtonClickedState(frameParentElementId);
         return;
       }
       if (buttonClicked.interaction === "mint") {
