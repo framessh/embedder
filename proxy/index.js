@@ -121,7 +121,7 @@ const probeImageSize = (imageUrl) => {
   return new Promise((resolved, rejected) => {
     let headers;
     console.log("Probing image size for:", imageUrl);
-    fetch(imageUrl, {
+    fetch(imageUrl.replaceAll("&amp;", "&"), {
       method: "GET",
       signal: AbortSignal.timeout(5000),
     })
