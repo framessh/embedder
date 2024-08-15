@@ -274,10 +274,10 @@ const getFrameImage = (parsedFrameContent) => {
     }
     const findImg = /.+(\.jpg|\.png|\.jpeg|\.gif)/g;
     if(frameImageFound === undefined && imageFallback !== undefined){
-      const matched = findImg.match(imageFallback);
+      const matched = imageFallback.match(findImg);
       return matched[0];
     } else if(frameImageFound !== undefined){
-      const matched = findImg.match(frameImageFound);
+      const matched = frameImageFound.match(findImg);
       return matched[0];
     }
     return Error("No image found in content.");
