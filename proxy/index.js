@@ -333,6 +333,7 @@ const processFrame = (targetUrl, method, payload = null) => {
         if (frameImage instanceof Error) {
           return null;
         }
+        console.log("Frame image found:", frameImage);
         return probeImageSize(frameImage);
       })
       .then((r) => {
