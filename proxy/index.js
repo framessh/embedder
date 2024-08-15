@@ -272,10 +272,13 @@ const getFrameImage = (parsedFrameContent) => {
         }
       }
     }
+    const findImg = /.+\.jpg|\.png|\.jpeg|\.gif/g;
     if(frameImageFound === undefined && imageFallback !== undefined){
-      return imageFallback;
+      const matched = findImg.match(imageFallback);
+      return matched[0];
     } else if(frameImageFound !== undefined){
-      return frameImageFound;
+      const matched = findImg.match(frameImageFound);
+      return matched[0];
     }
     return Error("No image found in content.");
   } catch (e) {
