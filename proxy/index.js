@@ -22,6 +22,7 @@ const validImagesMimeTypes = [
   "image/jpg",
   "image/gif",
   "image/jpeg",
+  "image/webp"
 ];
 let chromiumInitialised = false;
 
