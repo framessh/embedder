@@ -235,9 +235,12 @@ const captureImage = (frameUrl) => {
 
 const getFrameImage = (parsedFrameContent) => {
   try {
-    let frameImageFound = false;
+    let frameImageFound, imageFallback;
     for (let i = 0; i < parsedFrameContent.length; i++) {
       const headItem = parsedFrameContent[i];
+      if(frameImageFound !== undefined){
+        break;
+      }
       if (
         headItem !== null &&
         headItem.nodeName === "meta" &&
@@ -260,16 +263,19 @@ const getFrameImage = (parsedFrameContent) => {
           headItem.getAttribute("property") === "of:image" ||
           headItem.getAttribute("name") === "of:image"
         ) {
-          frameImageFound = true;
-          return imageUrl;
+          frameImageFound = imageUrl;
         } else if (
-          frameImageFound === false &&
           (headItem.getAttribute("property") === "og:image" ||
             headItem.getAttribute("name") === "og:image")
         ) {
-          return imageUrl;
+          imageFallback = imageUrl;
         }
       }
+    }
+    if(frameImageFound === undefined && imageFallback !== undefined){
+      return imageFallback;
+    } else if(frameImageFound !== undefined){
+      return frameImageFound;
     }
     return Error("No image found in content.");
   } catch (e) {
