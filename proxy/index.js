@@ -272,7 +272,7 @@ const getFrameImage = (parsedFrameContent) => {
         }
       }
     }
-    const findImg = /.+\.jpg|\.png|\.jpeg|\.gif/g;
+    const findImg = /.+(\.jpg|\.png|\.jpeg|\.gif)/g;
     if(frameImageFound === undefined && imageFallback !== undefined){
       const matched = findImg.match(imageFallback);
       return matched[0];
