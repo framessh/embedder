@@ -2,10 +2,6 @@
   <head>
     <meta charset="UTF-8" />
     <title>Frame Embedder Demo</title>
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src *; frame-src blob: https://localhost https://*.frames.sh; img-src 'self' * data: blob: https://localhost https://*.frames.sh; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';"
-    />
     <style>
       body {
         background-color: black;
@@ -14,6 +10,9 @@
       .frames {
         width: 600px;
         height: auto;
+      }
+      .frames:last-of-type {
+        padding-bottom: 50px;
       }
       #frames-container {
         display: flex;

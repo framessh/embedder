@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node --trace-uncaught --enable-source-maps --experimental-modules --expose_gc --es-module-specifier-resolution=node index.js"
+    "start": "node index.js",
+    "dev": "node index.js dev"
   },
   "author": "",
   "license": "ISC",

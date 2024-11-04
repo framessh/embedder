@@ -1,5 +1,6 @@
 require("dotenv").config();
 const fs = require("fs");
+const EventEmitter = require("node:events");
 const express = require("express");
 const https = require("https");
 const cors = require("cors");
@@ -10,20 +11,64 @@ const shotFactory = require("webshot-factory");
 
 const { BASE_URL, IMAGE_ID_NAMESPACE, CHROME_PATH } = process.env;
 
+/**
+ * Random UUID namespace for producing IDs and nonces
+ */
 const imageIdNamespace = IMAGE_ID_NAMESPACE;
+
+/**
+ * The base url for proxied images to return to the client
+ */
 const baseUrl = BASE_URL;
-const publicPath = "public";
-const indexPath = "index";
+
+/**
+ * All requests are processed one by one to prevent the proxy from being blocked by remove hosts
+ */
+const processRequestQueueEveryMs = 1;
+
+/**
+ * The duration until the cached images are considered old and should be marked removed
+ */
 const imageExpireTimeMs = 60000;
+
+/**
+ * All images are cached for reuse until it's aged and removed automatically
+ */
 const checkForExpiredImagesMs = 60000;
+
+/**
+ * The maximum acceptable image size for frames - images are probed for size and rejected if it's larger than.
+ */
 const maxImageSize = 1048576 * 5;
+
+/**
+ * Valid image mimetypes
+ */
 const validImagesMimeTypes = [
   "image/png",
   "image/jpg",
   "image/gif",
   "image/jpeg",
-  "image/webp"
+  "image/webp",
 ];
+
+/**
+ * Request results stored, ready to be sent back to the client
+ * Key: nonce
+ * Value: { content: HTML, image: proxied image }
+ */
+const requestResults = {};
+
+const events = new EventEmitter();
+
+/**
+ * The requests in queue
+ */
+let requestsQueue = [];
+
+/**
+ * Has chromium been initialised - chromium is used for screenshotting web-pages - this is currently not used
+ */
 let chromiumInitialised = false;
 
 const sslCredentials = {
@@ -31,14 +76,18 @@ const sslCredentials = {
   cert: fs.readFileSync(__dirname + "/ssl/ssl.crt", "utf-8"),
   ca: fs.readFileSync(__dirname + "/ssl/ca.crt", "utf-8"),
 };
-
+const devMode = process.argv[2] === "dev";
 const appServe = express();
 appServe.use(
-  cors({
-    origin: ["*"],
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedOrigin: "*",
-  })
+  cors(
+    devMode === false
+      ? {
+          origin: ["*"],
+          methods: ["GET", "POST", "OPTIONS"],
+          allowedOrigin: "*",
+        }
+      : {}
+  )
 );
 appServe.use(express.urlencoded({ limit: "10kb", extended: true }));
 appServe.use(
@@ -49,15 +98,18 @@ appServe.use(
 appServe.use(
   expressRateLimit({
     windowMs: 60000,
-    max: 10000,
+    max: 60000,
     keyGenerator: (req, res) => {
       return req.clientIp;
     },
   })
 );
-const appServeSecured = https.createServer(sslCredentials, appServe);
-appServeSecured.listen(443, () => {
-  console.log("Proxy server listening on port " + 443);
+const appServeSecured =
+  devMode === false ? https.createServer(sslCredentials, appServe) : appServe;
+appServeSecured.listen(devMode === true ? 80 : 443, () => {
+  console.log(
+    "Proxy server listening on port " + (devMode === true ? 80 : 443)
+  );
 });
 
 const removeStaleImages = () => {
@@ -67,7 +119,6 @@ const removeStaleImages = () => {
       return;
     }
     working = true;
-    console.log("Checking for expired images...");
     const now = new Date().getTime();
     const filesListRaw = fs.readdirSync(__dirname + "/public/");
     const files = filesListRaw.filter(
@@ -79,9 +130,34 @@ const removeStaleImages = () => {
         fs.unlinkSync(__dirname + "/public/" + f);
       }
     }
-    console.log("Checking for expired images done. Stale images removed.");
     working = false;
   }, checkForExpiredImagesMs);
+};
+
+const processRequestsInQueue = () => {
+  let working = false;
+  setInterval(() => {
+    if (working === true || requestsQueue.length <= 0) {
+      return;
+    }
+    working = true;
+    requestsQueue[0]
+      .process(...requestsQueue[0].arguments)
+      .then((r) => {
+        const nonce = requestsQueue[0].nonce;
+        requestResults[nonce] = r;
+        requestsQueue.shift();
+        events.emit(nonce, r);
+        working = false;
+      })
+      .catch((e) => {
+        const nonce = requestsQueue[0].nonce;
+        requestResults[nonce] = Error("Unknown error has occured.");
+        requestsQueue.shift();
+        events.emit(nonce, requestResults[nonce]);
+        working = false;
+      });
+  }, processRequestQueueEveryMs);
 };
 
 const isValidUrl = (url) => {
@@ -113,7 +189,7 @@ const isTxResponse = (response) => {
   }
 };
 
-const createImageId = (seed) => {
+const createId = (seed) => {
   return new Date().getTime() + "-" + v5(seed, imageIdNamespace);
 };
 
@@ -149,7 +225,6 @@ const probeImageSize = (imageUrl) => {
         });
       })
       .catch((e) => {
-        console.log(e);
         rejected(Error("Could not probe image size."));
       });
   });
@@ -161,7 +236,7 @@ const saveImage = (
   imageMimeType,
   indexFrame = false
 ) => {
-  const imageId = createImageId(
+  const imageId = createId(
     (new Date().getTime() + Math.random() * 999999999).toString()
   );
   const fileExtension = imageMimeType.split("/")[1];
@@ -189,7 +264,6 @@ const parseFrameContent = (frameContent) => {
     const head = doc.getElementsByTagName("head")[0];
     return head.childNodes;
   } catch (e) {
-    console.log(e);
     return Error("Invalid frame content.");
   }
 };
@@ -216,7 +290,7 @@ const captureImage = (frameUrl) => {
       })
       .then((buffer) => {
         console.log("Image captured.");
-        const imageId = createImageId(
+        const imageId = createId(
           (new Date().getTime() + Math.random() * 999999999).toString()
         );
         fs.createWriteStream(
@@ -228,7 +302,6 @@ const captureImage = (frameUrl) => {
         resolved(baseUrl + "/public/" + imageId + ".png");
       })
       .catch((e) => {
-        console.log(e);
         rejected(Error("Cannot start page capture instance."));
       });
   });
@@ -239,7 +312,7 @@ const getFrameImage = (parsedFrameContent) => {
     let frameImageFound, imageFallback;
     for (let i = 0; i < parsedFrameContent.length; i++) {
       const headItem = parsedFrameContent[i];
-      if(frameImageFound !== undefined){
+      if (frameImageFound !== undefined) {
         break;
       }
       if (
@@ -266,18 +339,18 @@ const getFrameImage = (parsedFrameContent) => {
         ) {
           frameImageFound = imageUrl;
         } else if (
-          (headItem.getAttribute("property") === "og:image" ||
-            headItem.getAttribute("name") === "og:image")
+          headItem.getAttribute("property") === "og:image" ||
+          headItem.getAttribute("name") === "og:image"
         ) {
           imageFallback = imageUrl;
         }
       }
     }
     const findImg = /.+(\.jpg|\.png|\.jpeg|\.gif)/g;
-    if(frameImageFound === undefined && imageFallback !== undefined){
+    if (frameImageFound === undefined && imageFallback !== undefined) {
       const matched = imageFallback.match(findImg);
       return matched[0];
-    } else if(frameImageFound !== undefined){
+    } else if (frameImageFound !== undefined) {
       const matched = frameImageFound.match(findImg);
       return matched[0];
     }
@@ -338,7 +411,7 @@ const processFrame = (targetUrl, method, payload = null) => {
         return probeImageSize(frameImage);
       })
       .then((r) => {
-        if (r === null) {
+        if (r === null || r instanceof Error) {
           return null;
         }
         const { buffer, mimeType } = r;
@@ -351,9 +424,25 @@ const processFrame = (targetUrl, method, payload = null) => {
         });
       })
       .catch((e) => {
-        console.log("An error has occured: ", e);
         rejected(Error("Could not process frame: " + e));
       });
+  });
+};
+
+const addWork = (nonce, targetUrl, method, payload = null) => {
+  const work = {
+    nonce,
+    process: processFrame,
+    arguments: [targetUrl, method, payload],
+  };
+  requestsQueue.push(work);
+};
+
+const findResults = (nonce) => {
+  return new Promise((resolved, rejected) => {
+    events.on(nonce, (e) => {
+      resolved(e);
+    });
   });
 };
 
@@ -380,7 +469,6 @@ appServe.get("/index/:resource", (req, res) => {
     }
     res.sendFile(__dirname + "/index/" + resource);
   } catch (e) {
-    console.log(e);
     res.status(503).end("Unknown error");
   }
 });
@@ -398,12 +486,11 @@ appServe.get("/public/:resource", (req, res) => {
     }
     res.sendFile(__dirname + "/public/" + resource);
   } catch (e) {
-    console.log(e);
     res.status(503).end("Unknown error");
   }
 });
 
-appServe.get("/:frame", (req, res) => {
+appServe.get("/:nonce/:frame", (req, res) => {
   try {
     const frameUrl = req.params.frame;
     if (frameUrl === "favicon.ico") {
@@ -411,19 +498,20 @@ appServe.get("/:frame", (req, res) => {
       return;
     }
     console.log("Frame proxy request received (GET):", frameUrl);
-    processFrame(frameUrl, "GET")
-      .then((result) => {
-        if (result instanceof Error) {
-          res.status(503).end(result);
+    const nonce = createId((Math.random() * 9999999).toString());
+    findResults(nonce)
+      .then((r) => {
+        if (r instanceof Error) {
+          res.status(503).end(r);
           return;
         }
-        res.status(200).send(result);
+        res.status(200).send(r);
       })
       .catch((e) => {
         res.status(503).end("Unknown error has occured.");
       });
+    addWork(nonce, frameUrl, "GET");
   } catch (e) {
-    console.log(e);
     res.status(503).end("Unknown error");
   }
 });
@@ -437,20 +525,23 @@ appServe.post("/", (req, res) => {
       return;
     }
     console.log("Frame proxy request received (POST):", frameUrl);
-    processFrame(frameUrl, "POST", framePayload)
-      .then((result) => {
-        if (result instanceof Error) {
-          res.status(503).end(result);
+    const nonce = createId((Math.random() * 9999999).toString());
+    findResults(nonce)
+      .then((r) => {
+        if (r instanceof Error) {
+          res.status(503).end(r);
           return;
         }
-        res.status(200).send(result);
+        res.status(200).send(r);
       })
       .catch((e) => {
         res.status(503).end("Unknown error has occured.");
       });
+    addWork(nonce, frameUrl, "POST", framePayload);
   } catch (e) {
     res.status(503).end("Unknown error");
   }
 });
 
 removeStaleImages();
+processRequestsInQueue();

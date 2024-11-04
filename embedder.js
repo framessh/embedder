@@ -110,13 +110,17 @@ class FramesEmbedder {
 
   loadFrame(frameUrl) {
     return new Promise((resolved, rejected) => {
-      fetch(this.frameProxy + "/" + encodeURIComponent(frameUrl), {
-        method: "GET",
-        headers: {
-          "content-type": "application/json",
-        },
-        signal: AbortSignal.timeout(5000),
-      })
+      const nonce = parseInt((Math.random() * 100000).toString());
+      fetch(
+        this.frameProxy + "/" + nonce + "/" + encodeURIComponent(frameUrl),
+        {
+          method: "GET",
+          headers: {
+            "content-type": "application/json",
+          },
+          signal: AbortSignal.timeout(5000),
+        }
+      )
         .then(async (r) => {
           if (r.status !== 200) {
             throw await r.text();
@@ -1032,5 +1036,3 @@ class FramesEmbedder {
 }
 const frameEmbedder = new FramesEmbedder();
 window.frameEmbedder = frameEmbedder;
-
-
