@@ -490,7 +490,7 @@ appServe.get("/public/:resource", (req, res) => {
   }
 });
 
-appServe.get("/:nonce/:frame", (req, res) => {
+appServe.get("/:frame", (req, res) => {
   try {
     const frameUrl = req.params.frame;
     if (frameUrl === "favicon.ico") {
