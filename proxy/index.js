@@ -468,7 +468,7 @@ appServe.get("/index/:resource", (req, res) => {
       return;
     }
     if (fs.existsSync(__dirname + "/index/" + resource) === false) {
-      res.status(500).end("Invalid resource.");
+      res.status(500).end("Resource does not exist.");
       return;
     }
     res.sendFile(__dirname + "/index/" + resource);
@@ -488,7 +488,7 @@ appServe.get("/public/:resource", (req, res) => {
       return;
     }
     if (fs.existsSync(__dirname + "/public/" + resource) === false) {
-      res.status(500).end("Invalid resource.");
+      res.status(500).end("Resource does not exist.");
       return;
     }
     res.sendFile(__dirname + "/public/" + resource);
