@@ -460,7 +460,10 @@ const testJSON = (json) => {
 appServe.get("/index/:resource", (req, res) => {
   try {
     const resource = req.params.resource;
-    if (/[^0-9a-zA-Z\.\-]/g.test(resource) === true) {
+    if (
+      /[^0-9a-zA-Z\.\-]/g.test(resource) === false ||
+      resource.indexOf("..") > -1
+    ) {
       res.status(500).end("Invalid resource.");
       return;
     }
@@ -477,7 +480,10 @@ appServe.get("/index/:resource", (req, res) => {
 appServe.get("/public/:resource", (req, res) => {
   try {
     const resource = req.params.resource;
-    if (/[^0-9a-zA-Z\.\-]/g.test(resource) === true) {
+    if (
+      /[^0-9a-zA-Z\.\-]/g.test(resource) === false ||
+      resource.indexOf("..") > -1
+    ) {
       res.status(500).end("Invalid resource.");
       return;
     }
