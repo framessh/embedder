@@ -144,6 +144,7 @@ const processRequestsInQueue = () => {
       return;
     }
     working = true;
+    console.log("Processing work:", requestsQueue[0].arguments[0]);
     requestsQueue[0]
       .process(...requestsQueue[0].arguments)
       .then((r) => {
@@ -417,6 +418,7 @@ const processFrame = (targetUrl, method, payload = null) => {
         return saveImage(targetUrl, buffer, mimeType, method === "GET");
       })
       .then((r) => {
+        console.log("Target resolved:", targetUrl, r);
         resolved({
           content: frameContentRaw,
           image: r,
