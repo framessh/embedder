@@ -249,7 +249,7 @@ const saveImage = (
   ).write(Buffer.from(imageArrayBuffer));
   if (indexFrame === true) {
     fs.createWriteStream(
-      __dirname + "/index/" + frameUrl.replace(/[^0-9a-zA-Z]/g, "") + ".png"
+      __dirname + "/index/" + frameUrl.replace(/[^0-9a-zA-Z\-]/g, "") + ".png"
     ).write(Buffer.from(imageArrayBuffer));
   }
   return baseUrl + "/public/" + imageId + "." + fileExtension;
