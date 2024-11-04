@@ -59,6 +59,9 @@ const validImagesMimeTypes = [
  */
 const requestResults = {};
 
+/**
+ * Requests results processed are  emitted events to signal to the caller that it's ready for use
+ */
 const events = new EventEmitter();
 
 /**
