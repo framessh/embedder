@@ -383,8 +383,9 @@ const processFrame = (targetUrl, method, payload = null) => {
         : {}),
     })
       .then(async (r) => {
-        if (r.status !== 200 && r.status !== 500) {
-          throw await r.text();
+        if (r.status !== 200) {
+          const error = await r.text();
+          throw error;
         }
         return r.text();
       })
@@ -532,8 +533,7 @@ appServe.post("/", (req, res) => {
       return;
     }
     console.log("Frame proxy request received (POST):", frameUrl);
-    const nonce = createId((Math.random() * 9999999).toString());
-    findResults(nonce)
+    processFrame(frameUrl, "POST", framePayload)
       .then((r) => {
         if (r instanceof Error) {
           res.status(503).end(r);
@@ -544,7 +544,6 @@ appServe.post("/", (req, res) => {
       .catch((e) => {
         res.status(503).end("Unknown error has occured.");
       });
-    addWork(nonce, frameUrl, "POST", framePayload);
   } catch (e) {
     res.status(503).end("Unknown error");
   }

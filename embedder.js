@@ -160,6 +160,25 @@ class FramesEmbedder {
 
   getFrameInputs(headNode) {
     let inputs = {};
+    let defaultPostTarget;
+    for (let i = 0; i < headNode.length; i++) {
+      const headItem = headNode[i];
+      if (
+        headItem !== null &&
+        headItem.nodeName === "META" &&
+        (headItem.getAttribute("property") ?? headItem.getAttribute("name")) !==
+          null &&
+        ((
+          headItem.getAttribute("property") ?? headItem.getAttribute("name")
+        ).indexOf("fc:frame:post_url") > -1 ||
+          (
+            headItem.getAttribute("property") ?? headItem.getAttribute("name")
+          ).indexOf("of:post_url") > -1)
+      ) {
+        const nodeContent = headItem.getAttribute("content");
+        defaultPostTarget = nodeContent;
+      }
+    }
     for (let i = 0; i < headNode.length; i++) {
       const headItem = headNode[i];
       if (
@@ -178,7 +197,13 @@ class FramesEmbedder {
           ).indexOf("of:button") > -1 ||
           (
             headItem.getAttribute("property") ?? headItem.getAttribute("name")
-          ).indexOf("of:input") > -1)
+          ).indexOf("of:input") > -1 ||
+          (
+            headItem.getAttribute("property") ?? headItem.getAttribute("name")
+          ).indexOf("fc:frame") > -1 ||
+          (
+            headItem.getAttribute("property") ?? headItem.getAttribute("name")
+          ).indexOf("of:") > -1)
       ) {
         const nodeContent = headItem.getAttribute("content");
         const nodeProperty =
@@ -216,7 +241,10 @@ class FramesEmbedder {
                   id: "button1",
                   type: "button1",
                   title: "Button 1",
-                  postUrl: nodeContent,
+                  postUrl:
+                    defaultPostTarget === undefined
+                      ? nodeContent
+                      : defaultPostTarget,
                 };
               }
               if (
@@ -253,7 +281,10 @@ class FramesEmbedder {
                   id: "button2",
                   type: "button2",
                   title: "Button 2",
-                  postUrl: nodeContent,
+                  postUrl:
+                    defaultPostTarget === undefined
+                      ? nodeContent
+                      : defaultPostTarget,
                 };
               }
               if (
@@ -290,7 +321,10 @@ class FramesEmbedder {
                   id: "button3",
                   type: "button3",
                   title: "Button 3",
-                  postUrl: nodeContent,
+                  postUrl:
+                    defaultPostTarget === undefined
+                      ? nodeContent
+                      : defaultPostTarget,
                 };
               }
               if (
@@ -327,7 +361,10 @@ class FramesEmbedder {
                   id: "button4",
                   type: "button4",
                   title: "Button 4",
-                  postUrl: nodeContent,
+                  postUrl:
+                    defaultPostTarget === undefined
+                      ? nodeContent
+                      : defaultPostTarget,
                 };
               }
               if (
@@ -353,7 +390,7 @@ class FramesEmbedder {
     return inputs;
   }
 
-  getFrameAspectRaio(headNode) {
+  getFrameAspectRatio(headNode) {
     for (let i = 0; i < headNode.length; i++) {
       const headItem = headNode[i];
       if (
@@ -418,7 +455,7 @@ class FramesEmbedder {
   performAction(
     frameParentElementId,
     inputs,
-    frameState,
+    frameStateRaw,
     buttonIndex,
     transactionData = null
   ) {
@@ -429,6 +466,12 @@ class FramesEmbedder {
       ) {
         return;
       }
+      const frameState =
+        frameStateRaw === "undefined" ||
+        frameStateRaw === undefined ||
+        frameStateRaw === "null"
+          ? undefined
+          : frameStateRaw;
       const frameElement = this.frameEmbedElements[frameParentElementId];
       const frameTheme = this.frameEmbedData[frameParentElementId].theme;
       const frameTransactionsEnabled =
@@ -563,9 +606,9 @@ class FramesEmbedder {
         url: postUrl,
         timestamp: 1706243218,
         network,
-        buttonIndex,
+        buttonIndex: buttonIndex ?? 1,
         inputText,
-        state,
+        state: state ?? "",
         transactionId,
         address,
       },
@@ -637,7 +680,7 @@ class FramesEmbedder {
     const frameContentNodes = this.parseFrameHeadDOM(frameContent);
     let frameInputs, frameImage, frameAspectRatio, frameState;
     if (renderImageNotHTML === true) {
-      frameAspectRatio = this.getFrameAspectRaio(frameContentNodes);
+      frameAspectRatio = this.getFrameAspectRatio(frameContentNodes);
       frameInputs = this.getFrameInputs(frameContentNodes);
       frameState = this.getFrameState(frameContentNodes);
       frameImage =
